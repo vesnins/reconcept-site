@@ -1,0 +1,26 @@
+{
+  "name": "reconcept-site",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/precompress.mjs",
+    "check": "astro check",
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.4",
+    "@fontsource-variable/manrope": "5.3.0",
+    "astro": "5.18.2",
+    "sharp": "0.34.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.4",
+    "@types/node": "22.18.8",
+    "typescript": "5.9.3"
+  }
+}
