@@ -1,0 +1,62 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { casePages, type Block, type CasePage } from '../../data/case-pages';
+
+export const getStaticPaths = () => Object.entries(casePages).map(([slug, page]) => ({ params: { slug }, props: { page } }));
+const { page } = Astro.props as { page: CasePage };
+
+const files = import.meta.glob<{ default: ImageMetadata }>('../../assets/cases/*/*.{jpg,png,webp}', { eager: true });
+const pic = (n: string) => Object.entries(files).find(([p]) => p.includes(`/cases/${n}.`))![1].default;
+const W = [640, 960, 1280, 1680, 1904];
+const FULL = '(max-width:1680px) calc(100vw - 40px), 1640px';
+const HALF = '(max-width:1199px) calc(100vw - 40px), calc(50vw - 50px)';
+const st = (b: Block) => [`--pt:${b.pad[0]}px`, `--pb:${b.pad[1]}px`, b.pad[2] != null && `--ptm:${b.pad[2]}px`, b.pad[3] != null && `--pbm:${b.pad[3]}px`, b.bg && `background:${b.bg}`].filter(Boolean).join(';');
+---
+<Base title={page.title} description={page.description}>
+  {page.blocks.map((b) => (
+    <section class="cb" style={st(b)}>
+      {b.k === 'video' && <div class:list={['cv', { 'cv--r': b.r }]} style={b.ratio && `aspect-ratio:${b.ratio}`}><iframe src={`https://kinescope.io/embed/${b.id}?autoplay=1&muted=1&loop=1`} title={page.title} loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media"></iframe></div>}
+      {b.k === 'intro' && <div class="ct ct--intro"><h1 class="ct__h">{b.h}</h1><p class="ct__p" set:html={b.html} /><p class="ct__p ct__year">{b.year}</p></div>}
+      {b.k === 'text' && <div class:list={['ct', { 'ct--r': b.right }]}><h2 class="ct__h">{b.h}</h2><div class="ct__p" set:html={b.html} /></div>}
+      {b.k === 'img' && <div class="ci">{b.img.map((n) => <Image class="ci__img" src={pic(n)} alt="" widths={W} sizes={FULL} loading="lazy" />)}</div>}
+      {b.k === 'pairs' && <div class="ci ci--pairs">{b.img.map((row) => <div class="ci__row">{row.map((n) => <Image class="ci__img" src={pic(n)} alt="" widths={W} sizes={HALF} loading="lazy" />)}</div>)}</div>}
+      {b.k === 'site' && <a class="cs" href={b.href}>смотреть сайт<i aria-hidden="true"></i></a>}
+    </section>
+  ))}
+</Base>
+<style is:global>
+/* Страница кейса — Tilda Zero-блоки кейсов (Freeul) */
+.cb{padding:var(--pt,0) 20px var(--pb,0)}
+.cv{aspect-ratio:16/10;overflow:hidden;box-shadow:0 10px 40px rgba(0,11,48,.25)}
+.cv iframe{display:block;width:100%;height:100%;border:0}
+.ct{display:flex;flex-direction:column;gap:20px;width:calc(50% - 10px)}
+.ct--intro{gap:30px}
+.ct--r{margin-left:auto}
+.ct__h{color:#000;font-size:50px;line-height:1.4;font-weight:400}
+.ct__p{color:#000;font-size:16px;line-height:1.8}
+.ct__p ul{padding-left:20px;list-style:disc}
+.ct__year{color:var(--gray)}
+.ci{display:flex;flex-direction:column;gap:120px}
+.ci--pairs{gap:60px}
+.ci__row{display:flex;align-items:center;gap:60px}
+.ci__img{width:100%;min-width:0}
+.ci__row .ci__img{flex:1}
+.cs{display:flex;justify-content:center;align-items:center;gap:5px;padding:75px 20px;border:2px solid var(--accent-hover);border-radius:100px;color:#000;font-size:50px;line-height:1.55;text-transform:lowercase;white-space:nowrap;transition:background-color .2s ease-in-out}
+.cs:hover{background:var(--accent-hover)}
+.cs i{width:50px;height:50px;flex:none;background:currentColor;-webkit-mask:var(--arw) center/contain no-repeat;mask:var(--arw) center/contain no-repeat;animation:cs-y 2s linear infinite}
+@keyframes cs-y{50%{transform:translateY(-3px)}}
+@media (max-width:1199px){
+  .ct{width:auto}
+  .ci{gap:60px}
+  .ci__row{flex-direction:column}
+  .ci__row .ci__img{flex:none}
+  .cs{padding:30px 20px;font-size:16px}
+  .cs i{width:20px;height:20px}
+}
+@media (min-width:960px) and (max-width:1199px){.cv--r{border-radius:10px}}
+@media (max-width:959px){.ct--intro{gap:20px}}
+@media (max-width:480px){.cb{padding-top:var(--ptm,var(--pt,0));padding-bottom:var(--pbm,var(--pb,0))}}
+@media (max-width:479px){.ct__h{font-size:30px}}
+</style>
