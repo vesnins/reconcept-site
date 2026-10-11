@@ -1,0 +1,28 @@
+---
+const nav = [['мы', '/contacts'], ['делаем', '/services'], ['сайты', '/']];
+---
+<header class="hdr">
+  <a class="hdr__logo" href="/">RE</a>
+  <nav class="hdr__nav" aria-label="Меню">
+    {nav.map(([t, h]) => <a href={h}>{t}<i aria-hidden="true"></i></a>)}
+  </nav>
+  <a class="hdr__logo" href="#contacts">CO</a>
+</header>
+<style is:global>
+/* Header — Tilda rec2835130001 */
+.hdr{height:124px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 20px}
+.hdr__logo{color:#000;font-size:80px;line-height:124px;font-weight:400;white-space:nowrap}
+.hdr__nav{display:flex;align-items:center;gap:80px;height:60px}
+.hdr__nav a{display:flex;align-items:center;gap:5px;color:var(--dark);font-size:20px;line-height:1;text-transform:lowercase}
+.hdr__nav a:hover{color:#1e2229}
+.hdr__nav i{width:20px;height:20px;flex:none;background:currentColor;-webkit-mask:var(--arw) center/contain no-repeat;mask:var(--arw) center/contain no-repeat}
+@media (max-width:1199px){
+  .hdr{height:78px;gap:10px;padding:0 4px}
+  .hdr__logo{font-size:50px;line-height:78px}
+  .hdr__nav a{font-size:16px}
+}
+@media (max-width:959px){
+  .hdr__nav{flex:1;gap:10px;justify-content:center;height:auto}
+  .hdr__nav a{font-size:14px}
+}
+</style>

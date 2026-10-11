@@ -1,0 +1,49 @@
+---
+import { SITE } from '../lib/site';
+const year = new Date().getFullYear();
+const chats = [['чат telegram', SITE.telegram, 'click_telegram'], ['чат whatsapp', SITE.whatsapp, 'click_whatsapp'], ['чат max', SITE.max, 'click_max']];
+---
+<footer class="ftr" id="contacts">
+  <div class="ftr__top">
+    <div class="ftr__row">
+      <a class="ftr__mail" href={`mailto:${SITE.email}`} data-goal="click_email">{SITE.email}</a>
+      <div class="ftr__btns">
+        {chats.map(([t, h, g]) => <a class="pill" href={h} target="_blank" rel="noopener" data-goal={g}>{t}</a>)}
+      </div>
+    </div>
+    <div class="ftr__info">
+      <p class="ftr__lead">Свяжитесь с нами по любым контактам для консультации. Ответим на все ваши вопросы и подберём оптимальное решение.</p>
+      <p>Студия «Реконцепт»: ИП&nbsp;Аманова АС, ИНН {SITE.inn}, ОГРН {SITE.ogrnip}<br>Адрес: г.&nbsp;Волгоград, ул.&nbsp;Двинская, 18</p>
+      <p>Читайте наш <a href="https://t.me/reconcept" target="_blank" rel="noopener">Telegram</a></p>
+    </div>
+  </div>
+  <div class="ftr__bottom">
+    <a href="/privacy">Политика конфиденциальности</a>
+    <a href="/">©Reconcept 2010-{year}</a>
+  </div>
+</footer>
+<style is:global>
+/* Footer — Tilda rec2850177901 + rec2850178001 (без формы) */
+.ftr__top{display:flex;flex-direction:column;gap:120px;padding:120px 20px 0}
+.ftr__row{display:flex;align-items:center;gap:20px}
+.ftr__mail{color:#000;font-size:50px;line-height:1.4;text-transform:lowercase}
+.ftr__btns{display:flex;align-items:center;gap:10px}
+.pill{display:inline-flex;justify-content:center;align-items:center;padding:25px 30px;border:1px solid var(--line);border-radius:50px;color:var(--dark);font-size:16px;line-height:1.55;text-transform:lowercase;white-space:nowrap;transition:background-color .2s ease-in-out,border-color .2s ease-in-out}
+.pill:hover{background:var(--accent-hover);border-color:var(--accent)}
+.ftr__info{display:flex;flex-direction:column;gap:60px;width:calc(50% - 10px);padding-right:40px;color:#000;font-size:16px;line-height:1.8}
+.ftr__info a{color:var(--dark);border-bottom:1px solid var(--dark)}
+.ftr__bottom{display:flex;justify-content:flex-end;align-items:center;gap:20px;min-height:29px;padding:60px 20px;color:var(--gray);font-size:14px;line-height:1.6}
+@media (max-width:1199px){
+  .ftr__top{gap:60px}
+  .ftr__info{width:100%;padding-right:0}
+  .ftr__lead{display:none}
+}
+@media (max-width:959px){
+  .ftr__row{flex-direction:column;gap:40px}
+  .ftr__mail{text-align:center}
+  .ftr__btns{flex-direction:column;align-items:stretch;gap:10px}
+  .ftr__info{text-align:center}
+  .ftr__bottom{flex-direction:column;align-items:flex-start;gap:20px}
+}
+@media (max-width:479px){.ftr__mail{font-size:28px}}
+</style>

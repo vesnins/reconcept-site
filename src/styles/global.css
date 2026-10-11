@@ -1,6 +1,7 @@
 /* Токены: значения уточняются по CSS-параметрам шаблонов (этап 2) */
 :root{
-  --dark:#1e1435; --gray:#858092; --accent:#e3ff00; --bg:#fff;
+  --dark:#1e1435; --gray:#858092; --accent:#e3ff00; --accent-hover:#dbf600; --line:#c8c8fc; --bg:#fff;
+  --arw:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 15 15 5M6.5 5H15v8.5' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='square'/%3E%3C/svg%3E");
   --sans:"Manrope Variable",Manrope,Arial,sans-serif;
   --container:1600px; --gutter:20px; --gap:20px;
   color-scheme:light;
@@ -25,5 +26,5 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .ckb{display:flex;gap:8px}.ckb button{flex:1;padding:10px 12px;border:1px solid var(--dark)}
 #ck-yes{background:var(--dark);color:var(--bg)}
 
-/* брейкпоинты: tablet ≤1024px, mobile ≤768px */
-@media (max-width:768px){.cookie{left:12px;right:12px;bottom:12px;max-width:none}}
+/* брейкпоинты как на Tilda: ≤1199px, ≤959px */
+@media (max-width:959px){.cookie{left:12px;right:12px;bottom:12px;max-width:none}}
