@@ -1,0 +1,21 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import photo from '../assets/contacts.jpg';
+---
+<Base title="Контакты ReConcept" description="Оставьте заявку в ReConcept — мы превращаем идеи в работающие digital-решения. Свяжитесь с нами!">
+  <section class="ab">
+    <Image class="ab__img" src={photo} alt="" width={600} loading="eager" fetchpriority="high" />
+    <h1 class="ab__h1">RECONCEPT</h1>
+  </section>
+  <p class="ab__text">Студия «Reconcept» — творческий и бизнес-союз Азалии Амановой и Сергея Веснина. С 2010 запустили сотни проектов для клиентов и помогли в развитии их бизнеса. Участвовали в запусках стартапов, развивали собственные рекламные, коммерческие и медиа-проекты. Стараемся быть полезными и дорожим доверием наших партнеров.</p>
+</Base>
+<style is:global>
+/* /contacts — Tilda rec2850315401, rec2898907401 */
+.ab{display:flex;flex-direction:column;align-items:center;gap:60px;padding:120px 20px 60px}
+.ab__img{width:600px}
+.ab__h1{width:100%;color:#000;font-size:50px;line-height:1.4;font-weight:400;letter-spacing:50px;text-align:center}
+.ab__text{max-width:860px;margin-inline:auto;padding:0 20px 60px;color:#000;font-size:16px;line-height:1.8;text-align:center}
+@media (max-width:1199px){.ab__h1{font-size:30px}.ab__text{max-width:none;text-align:left}}
+@media (max-width:959px){.ab__h1{letter-spacing:12px}}
+</style>
