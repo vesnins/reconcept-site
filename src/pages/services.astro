@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+
+type Card = { t: string; d: string; p?: string; href?: string };
+const groups: { h: string; cards: Card[] }[] = [
+  { h: 'Занимаемся классическим вебом — многостраничные сайты с большим количеством контента, промо-сайты и интернет-коммерция', cards: [
+    { t: 'Корпоративный сайт', d: 'Многостраничный имиджевый информационный сайт с услугами, продуктами и философией компании. Удобная админпанель.', p: 'от 550 000 рублей до ∞', href: '/services/business-website-development' },
+    { t: 'Интернет-магазин', d: 'Многостраничный сайт с каталогом или сайт моно-товара, на котором удобно выбирать и оплачивать товар и доставку без участия менеджера.', p: 'от 250 000 рублей', href: '/services/e-commerce-website-development' },
+    { t: 'Лендинг с рекламой', d: 'Одностраничный сайт для сбора лидов. Идеален для запуска продукта, услуги и промо-кампаний. С настроенной рекламой Яндекс директ.', p: 'от 90 000 рублей', href: '/services/landing-page-development' },
+  ] },
+  { h: 'Пишем программные продукты, которые помогают решать рутинные задачи', cards: [
+    { t: 'Кастомное ПО', d: 'Анализируем ваше ТЗ, подбираем оптимальный технологический стек (без переплаты за лишнюю сложность) и доводим проект от архитектуры до продакшена.', p: 'от 550 000 рублей до ∞' },
+    { t: 'Телеграм-боты', d: 'От простых ботов до ботов с разветвленным функционалом.', p: 'от 80 000 рублей до ∞' },
+  ] },
+  { h: 'Придумываем айдентику и закрываем почти все вопросы по графическому дизайну', cards: [
+    { t: 'Разработка айдентики', d: 'Визуальная оболочка бренда, включает: логотип, шрифты, цвета, элементы, стиль фотографий и иллюстраций, айдентику для упаковки, соцсетей, макеты полиграфии.', p: 'от 120 000 рублей', href: '/services/brand-identity-design' },
+    { t: 'Дизайн для спорта', d: 'Концепция и дизайн спортивных событий, графический дизайн, разработка принтов формы и мерча.', p: 'пакет 10 часов 40 000 руб.', href: '/services/sportswear-and-event-merch-design' },
+    { t: 'Графический дизайн', d: 'Почасовая оплата дизайн-работ: вёрстка и доработка сайта, создание гайдов и презентаций, иллюстрации, ретушь, разработка макетов для полиграфии.', p: 'пакет 10 часов 40 000 руб.' },
+    { t: 'Иллюстрации', d: 'Векторные диджитал и растровые ручные иллюстрации для упаковки, сайтов, мерча.', href: '/services/illustration' },
+  ] },
+];
+---
+<Base title="Цены и сроки ReConcept" description="Узнайте цены и сроки услуг ReConcept — прозрачные условия, честные расценки и профессиональный подход к каждому проекту.">
+  {groups.map((g, i) => <>
+    {i ? <h2 class="svc-h">{g.h}</h2> : <h1 class="svc-h">{g.h}</h1>}
+    <div class="svc-grid">
+      {g.cards.map((c) => {
+        const Tag = c.href ? 'a' : 'div';
+        return <Tag class="svc-card" href={c.href}>
+          <div class="svc-card__body">
+            <h3 class="svc-card__t">{c.t}</h3>
+            <p class="svc-card__d">{c.d}</p>
+            {c.p && <p class="svc-card__p">{c.p}</p>}
+          </div>
+          {c.href && <span class="svc-card__btn" aria-hidden="true"></span>}
+        </Tag>;
+      })}
+    </div>
+  </>)}
+</Base>
+<style is:global>
+/* /services — Tilda rec2845523001…rec2879185701 */
+.svc-h{max-width:1235px;padding:120px 20px 0;color:#000;font-size:50px;line-height:1.4;font-weight:400}
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:90px 20px 0}
+.svc-card{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:20px;min-height:315px;padding:40px 40px 20px;background:#fff}
+.svc-card__body{display:flex;flex-direction:column;gap:20px}
+.svc-card__t{color:#000;font-size:30px;line-height:1.4;font-weight:400}
+.svc-card__d,.svc-card__p{color:#000;font-size:16px;line-height:1.8}
+.svc-card__p{color:var(--gray)}
+.svc-card__btn{display:flex;padding:15px 20px 15px 15px;border:1px solid var(--line);border-radius:50px;color:#000;transition:border-color .2s ease-in-out,color .2s ease-in-out}
+.svc-card__btn::before{content:"";width:20px;height:20px;background:currentColor;-webkit-mask:var(--arw) center/contain no-repeat;mask:var(--arw) center/contain no-repeat}
+.svc-card__btn:hover{border-color:var(--accent-hover);color:#5b4c7e}
+@media (min-width:2500px){.svc-card{min-height:330px}.svc-grid:last-of-type .svc-card{min-height:342px}}
+@media (max-width:1679px){.svc-card{min-height:341px;padding:40px 20px 20px}}
+@media (max-width:1199px){.svc-h{max-width:none}.svc-grid{grid-template-columns:1fr}.svc-card{min-height:0}}
+@media (max-width:479px){.svc-h{font-size:30px}}
+</style>
