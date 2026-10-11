@@ -26,7 +26,7 @@ const CSP = [
   "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com wss://mc.yandex.ru",
   "frame-src https://mc.yandex.ru https://mc.yandex.com https://kinescope.io https://*.kinescope.io",
   "frame-ancestors 'self' https://metrika.yandex.ru https://metrica.yandex.com https://*.webvisor.com https://webvisor.com",
-  "base-uri 'self'", "form-action 'self'", "object-src 'none'", 'upgrade-insecure-requests',
+  "base-uri 'self'", "form-action 'self'", "object-src 'none'",
 ].join('; ');
 
 const SECURITY = {
