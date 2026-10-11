@@ -1,23 +1,8 @@
-// Страницы кейсов /portfolio/[slug]. Блоки выводятся по порядку.
-// pad: [отступ сверху, снизу, сверху ≤480px, снизу ≤480px]; bg — фон блока.
-// Картинки: src/assets/cases/<slug-папка>/NN.jpg (img: 'freeul/01').
-// html — текст с разметкой (<br>, <ul>). pairs: '' — пустая половина (скрыта ≤1199).
-// gap: img [десктоп, ≤1199] (по умолч. 120/60), pairs — число (по умолч. 60). r — скругление 10px на 960–1199.
-// al — выравнивание пары по вертикали (по умолч. центр). tiles — плитка 1:1 на всю ширину, c колонок (≤960 — 2).
+// Страницы кейсов /portfolio/[slug]. Типы и описание полей — src/data/blocks.ts.
+import type { Page } from './blocks';
 const L = '#c8c8fc';
 
-export type Pad = [number, number, number?, number?];
-export type Block =
-  | { k: 'video'; id: string; ratio?: string; r?: boolean; pad: Pad; bg?: string }
-  | { k: 'intro'; h: string; html: string; year: string; pad: Pad; bg?: string }
-  | { k: 'text'; h?: string; html: string; right?: boolean; pad: Pad; bg?: string }
-  | { k: 'img'; img: string[]; gap?: [number, number?]; r?: boolean; pad: Pad; bg?: string }
-  | { k: 'pairs'; img: string[][]; gap?: number; al?: 'start' | 'end'; r?: boolean; pad: Pad; bg?: string }
-  | { k: 'tiles'; c: 3 | 4; img: string[]; pad: Pad; bg?: string }
-  | { k: 'site'; href: string; pad: Pad; bg?: string };
-export interface CasePage { title: string; description: string; blocks: Block[] }
-
-export const casePages: Record<string, CasePage> = {
+export const casePages: Record<string, Page> = {
   'e-commerce-website-development-freeul': {
     title: 'Создание интернет-магазина «FREEUL»',
     description: 'Готовый интернет-магазин под ключ: современный дизайн, скидки, оплата, доставка, ИИ-иллюстрации и поддержка — запускаем бизнес онлайн.',
