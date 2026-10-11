@@ -1,0 +1,158 @@
+/* Reconcept Quiz v1.8.2 */
+
+.rq, .rq * { box-sizing: border-box; }
+
+.rq {
+  --rq-dark: #1e1435;
+  --rq-accent: #dbf600;
+  --rq-line: #e6e5ea;
+  font-family: 'Inter Variable', Arial, sans-serif;
+  font-size: 16px; font-weight: 400; line-height: 1.5;
+  color: #000;
+  padding: 0 20px;
+  -webkit-font-smoothing: antialiased;
+  text-align: left;
+}
+
+.rq button, .rq input, .rq textarea { font: inherit; color: inherit; }
+.rq ul { list-style: none; margin: 0; padding: 0; }
+
+/* шапка шага */
+.rq-head { margin-bottom: 28px; }
+.rq-bar { height: 3px; background: var(--rq-line); overflow: hidden; }
+.rq-bar i { display: block; height: 100%; background: var(--rq-dark); transition: width .25s ease; }
+
+/* вопрос */
+.rq-q {
+  font-size: 30px; line-height: 1.2; font-weight: 400; margin: 0 0 8px;
+}
+.rq-hint { margin: 0 0 24px; }
+.rq-q + .rq-opts { margin-top: 24px; }
+.rq-q--next { margin-top: 40px; }
+
+/* варианты */
+.rq-opts { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.rq-opt {
+  display: flex; align-items: flex-start; gap: 14px;
+  width: 100%; padding: 10px 0;
+  background: none; border: 0;
+  text-align: left; cursor: pointer;
+}
+.rq-opt:focus-visible { outline: 2px solid var(--rq-dark); outline-offset: 2px; }
+
+/* радио и чекбоксы */
+.rq-ctrl {
+  flex: 0 0 22px; width: 22px; height: 22px; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; border: 1.5px solid var(--rq-dark);
+  transition: background-color .2s ease;
+}
+.rq-opts--single .rq-ctrl { border-radius: 50%; }
+.rq-opt.is-on .rq-ctrl { background: var(--rq-dark); }
+.rq-opts--single .rq-opt.is-on .rq-ctrl::after {
+  content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff;
+}
+.rq-opts--multi .rq-opt.is-on .rq-ctrl::after {
+  content: ''; width: 6px; height: 11px; margin-top: -3px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+
+/* навигация */
+.rq-nav { display: flex; align-items: center; gap: 16px; margin-top: 28px; min-height: 48px; }
+.rq-back {
+  background: none; border: none; padding: 12px 0;
+  cursor: pointer;
+}
+.rq-next { background: none; border: none; padding: 12px 0; cursor: pointer; }
+.rq-back:focus-visible, .rq-next:focus-visible { outline: 2px solid var(--rq-dark); outline-offset: 2px; }
+
+/* результат */
+.rq-lead { margin: 0 0 24px; }
+.rq-why { margin: 24px 0 0; display: grid; gap: 12px; }
+.rq-why li {
+  position: relative; padding-left: 20px;
+}
+.rq-why li::before {
+  content: ''; position: absolute; left: 0; top: 9px;
+  width: 6px; height: 6px; border-radius: 50%; background: #000;
+}
+
+.rq-price { margin: 32px 0; }
+.rq-num { font-size: 50px; line-height: 1.2; }
+.rq-term { margin-top: 8px; }
+
+.rq-cols { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.rq-works ol { margin: 0; padding-left: 24px; }
+.rq-works li { margin-bottom: 10px; }
+.rq-alt .rq-num { margin-top: 32px; }
+.rq-alt p { margin: 12px 0 0; }
+
+.rq-disc { margin: 24px 0 0; }
+
+.rq-bonus { margin-top: 32px; padding: 24px; background: var(--rq-accent); }
+.rq-bonus p { margin: 0; }
+
+.rq-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.rq-btn {
+  padding: 25px 30px; border: 1px solid #fff; border-radius: 50px;
+  background: #fff; color: #000; text-decoration: none; text-align: center;
+  transition: background-color .2s, border-color .2s;
+}
+.rq-btn:hover { background: #c8c8fc; border-color: #c8c8fc; }
+.rq-btn:focus-visible { outline: 2px solid var(--rq-dark); outline-offset: 2px; }
+
+.rq-again {
+  margin-top: 24px; padding: 12px 0; background: none; border: none;
+  text-decoration: underline; cursor: pointer;
+}
+.rq-again:hover { text-decoration: none; }
+
+/* планшет */
+@media (min-width: 769px) {
+  .rq-opts { grid-template-columns: 1fr 1fr; gap: 4px 40px; }
+}
+
+/* модальное окно */
+html:has(.rq-dlg[open]) { overflow: hidden; scrollbar-gutter: stable; }
+
+.rq-dlg {
+  width: calc(100% - 40px); max-width: none; max-height: calc(100dvh - 40px);
+  margin: auto; padding: 0; border: 0; background: #fff; color: #000;
+  overflow: hidden;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .2s ease, transform .2s ease, overlay .2s allow-discrete, display .2s allow-discrete;
+}
+.rq-dlg[open] { opacity: 1; transform: none; display: flex; flex-direction: column; }
+.rq-dlg:not([open]) { display: none; }
+.rq-dlg:focus { outline: none; }
+@starting-style { .rq-dlg[open] { opacity: 0; transform: translateY(16px); } }
+
+.rq-dlg::backdrop {
+  background: rgb(0 0 0 / 0); backdrop-filter: blur(0px);
+  transition: background-color .2s ease, backdrop-filter .2s ease, overlay .2s allow-discrete, display .2s allow-discrete;
+}
+.rq-dlg[open]::backdrop { background: rgb(0 0 0 / .7); backdrop-filter: blur(8px); }
+@starting-style { .rq-dlg[open]::backdrop { background: rgb(0 0 0 / 0); backdrop-filter: blur(0px); } }
+
+.rq-body {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: 70px 20px;
+}
+
+.rq-x {
+  position: absolute; top: 12px; right: 12px; z-index: 1;
+  display: grid; place-items: center; width: 48px; height: 48px;
+  padding: 0; border: 0; background: none; color: #000; cursor: pointer;
+  transition: transform .2s ease;
+}
+.rq-x:focus-visible { outline: 2px solid #1e1435; outline-offset: 2px; }
+@media (hover: hover) { .rq-x:hover { transform: rotate(45deg); } }
+
+/* десктоп */
+@media (min-width: 1025px) {
+  .rq-dlg { width: 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rq *, .rq-dlg, .rq-dlg::backdrop, .rq-x { transition: none !important; }
+}

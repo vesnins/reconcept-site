@@ -7,5 +7,6 @@ export default defineConfig({
   trailingSlash: 'never',
   build: { format: 'file', inlineStylesheets: 'always' },
   compressHTML: true,
+  vite: { build: { assetsInlineLimit: 0 } }, // без data:-шрифтов (CSP font-src 'self')
   integrations: [sitemap({ filter: (p) => !p.endsWith('/404') })],
 });

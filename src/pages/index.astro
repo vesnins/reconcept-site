@@ -3,6 +3,8 @@ import Base from '../layouts/Base.astro';
 import CaseCard from '../components/CaseCard.astro';
 import { cases } from '../data/cases';
 import { SITE } from '../lib/site';
+import '@fontsource-variable/inter';
+import '../styles/quiz.css';
 ---
 <Base title="ReConcept — создаём цифровые продукты для компаний" description="Создаём сайты и айдентику, которые приносят результат. 15 лет опыта, прозрачные процессы, реальные кейсы и отзывы клиентов.">
   <section class="hero">
@@ -14,6 +16,8 @@ import { SITE } from '../lib/site';
     </div>
   </section>
   {cases.map((c) => <CaseCard c={c} />)}
+  <div id="rq"></div>
+  <script src="../scripts/quiz.js"></script>
 </Base>
 <style is:global>
 /* Главная — Tilda rec1524370731 (hero) + кейсы rec29xxxxx */
