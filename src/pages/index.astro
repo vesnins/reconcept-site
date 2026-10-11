@@ -1,4 +1,45 @@
 ---
 import Base from '../layouts/Base.astro';
+import CaseCard from '../components/CaseCard.astro';
+import { cases } from '../data/cases';
+import { SITE } from '../lib/site';
 ---
-<Base><div class="container"><h1>Reconcept</h1></div></Base>
+<Base title="ReConcept — создаём цифровые продукты для компаний" description="Создаём сайты и айдентику, которые приносят результат. 15 лет опыта, прозрачные процессы, реальные кейсы и отзывы клиентов.">
+  <section class="hero">
+    <h1 class="hero__h1">Разрабатываем сайты для заводов и производителей, запускаем рекламу и поддерживаем актуальным контент</h1>
+    <div class="hero__btns">
+      <a class="pill pill--fill" href="#contacts">консультация<i aria-hidden="true"></i></a>
+      <a class="pill" href={SITE.telegram} target="_blank" rel="noopener" data-goal="click_telegram">чат telegram</a>
+      <a class="pill" href="#quiz">узнать стоимость</a>
+    </div>
+  </section>
+  {cases.map((c) => <CaseCard c={c} />)}
+</Base>
+<style is:global>
+/* Главная — Tilda rec1524370731 (hero) + кейсы rec29xxxxx */
+.hero{display:flex;flex-direction:column;align-items:flex-start;gap:60px;padding:120px 20px 0}
+.hero__h1{max-width:1195px;color:#000;font-size:50px;line-height:1.4;font-weight:400}
+.hero__btns{display:flex;gap:10px}
+.case{display:flex;gap:60px;padding:120px 20px 0}
+.case__panel{flex:1;min-width:0;padding:120px 60px 0}
+.case__video{height:191px;overflow:hidden}
+.case__video iframe{display:block;width:100%;height:100%;border:0}
+.case__img{width:100%;height:auto}
+.case__info{flex:none;width:400px;display:flex;flex-direction:column;align-items:flex-start;gap:20px}
+.case__title{color:#000;font-size:30px;line-height:1.4;font-weight:400}
+.case__text{color:#000;font-size:16px;line-height:1.8}
+.case__btns{display:flex;align-items:center;gap:10px}
+@media (max-width:1199px){
+  .hero__h1{max-width:none}
+  .case{flex-direction:column;gap:30px}
+  .case__panel{flex:none;padding:120px 20px 0}
+  .case__video{height:156px}
+  .case__info{width:100%}
+}
+@media (max-width:959px){
+  .hero__btns{flex-direction:column;align-self:stretch}
+  .case{padding:120px 0 0}
+  .case__info{padding:0 20px}
+}
+@media (max-width:479px){.hero__h1{font-size:30px}}
+</style>

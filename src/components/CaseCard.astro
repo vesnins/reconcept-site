@@ -1,0 +1,21 @@
+---
+import { Image } from 'astro:assets';
+import type { Case } from '../data/cases';
+interface Props { c: Case; eager?: boolean }
+const { c, eager = false } = Astro.props;
+---
+<article class="case">
+  <div class="case__panel" style={`background-color:${c.bg}`}>
+    {c.image
+      ? <Image class="case__img" src={c.image} alt={c.title} widths={[480, 800, 1200, 1680]} sizes="(max-width:1199px) 100vw, calc(100vw - 500px)" loading={eager ? 'eager' : 'lazy'} />
+      : <div class="case__video">{c.video && <iframe src={c.video} title={c.title} loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" frameborder="0"></iframe>}</div>}
+  </div>
+  <div class="case__info">
+    <h2 class="case__title">{c.title}</h2>
+    <p class="case__text">{c.text}</p>
+    <div class="case__btns">
+      {c.read && <a class="pill pill--sm" href={c.read}>читать</a>}
+      {c.site && <a class="pill pill--sm" href={c.site} target="_blank" rel="noopener">сайт</a>}
+    </div>
+  </div>
+</article>
