@@ -35,9 +35,28 @@ const pad = (b: Block) => 'pad' in b ? [`--pt:${b.pad[0]}px`, `--pb:${b.pad[1]}p
       <ol class="ps__list">{b.items.map((s, i) => <li class="ps__i"><span class="ps__n">{i}</span><div class="ps__c"><h3 class="ps__t">{s.t}</h3><p class="ps__d" set:html={s.d} /></div></li>)}</ol>
       {b.cta && <a class="pill pill--fill ps__cta" href="#contacts">консультация<i aria-hidden="true"></i></a>}
     </div></section>}
-    {b.k === 'faq' && <section class="fq">{b.items.map(([q, a]) => <details class="fq__i"><summary class="fq__q">{q}<span class="fq__ic" aria-hidden="true"></span></summary><p class="fq__a" set:html={a} /></details>)}</section>}
+    {b.k === 'faq' && <section class="fq">{b.items.map(([q, a]) => <details class="fq__i"><summary class="fq__q">{q}<span class="fq__ic" aria-hidden="true"></span></summary><div class="fq__w"><p class="fq__a" set:html={a} /></div></details>)}</section>}
   </>)}
 </Base>
+<script>
+// FAQ: плавное открытие/закрытие 0.5 с
+const rm = matchMedia('(prefers-reduced-motion:reduce)');
+document.querySelectorAll<HTMLDetailsElement>('.fq__i').forEach((d) => {
+  const w = d.querySelector<HTMLElement>('.fq__w')!;
+  let a: Animation | undefined;
+  d.querySelector('summary')!.addEventListener('click', (e) => {
+    e.preventDefault();
+    const close = d.classList.contains('is-open');
+    d.classList.toggle('is-open', !close);
+    if (rm.matches) { d.open = !close; return; }
+    const from = a ? w.offsetHeight : close ? w.scrollHeight : 0;
+    a?.cancel();
+    d.open = true;
+    a = w.animate({ height: [`${from}px`, `${close ? 0 : w.scrollHeight}px`] }, { duration: 500, easing: 'ease' });
+    a.onfinish = () => { a = undefined; if (close) d.open = false; };
+  });
+});
+</script>
 <style is:global>
 /* Страница услуги — Tilda Zero-блоки services/* (rec2847104301 и др.) */
 .sb{padding:var(--pt,0) 20px var(--pb,0)}
@@ -83,11 +102,12 @@ const pad = (b: Block) => 'pad' in b ? [`--pt:${b.pad[0]}px`, `--pb:${b.pad[1]}p
 .fq__q{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:27px 0;color:#000;font-size:16px;line-height:1.8;cursor:pointer;list-style:none}
 .fq__q::-webkit-details-marker{display:none}
 .fq__ic{position:relative;flex:none;width:34px;height:34px;border-radius:50%;transition:background-color .2s ease-in-out}
-.fq__ic::before,.fq__ic::after{content:"";position:absolute;top:50%;left:50%;width:22px;height:2px;margin:-1px 0 0 -11px;background:var(--dark);transition:transform .2s ease-in-out}
+.fq__ic::before,.fq__ic::after{content:"";position:absolute;top:50%;left:50%;width:22px;height:2px;margin:-1px 0 0 -11px;background:var(--dark);transition:transform .5s ease}
 .fq__ic::after{transform:rotate(90deg)}
 .fq__q:hover .fq__ic{background:var(--accent)}
 .fq__q:hover .fq__ic::before,.fq__q:hover .fq__ic::after{background:#222}
-.fq__i[open] .fq__ic::after{transform:rotate(0)}
+.fq__i.is-open .fq__ic::after{transform:rotate(0)}
+.fq__w{overflow:hidden}
 .fq__a{padding-bottom:27px;color:var(--gray);font-size:16px;line-height:1.8}
 @media (max-width:1199px){
   .sh__h{max-width:none}
