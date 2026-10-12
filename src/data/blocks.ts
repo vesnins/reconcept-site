@@ -3,6 +3,7 @@
 // Картинки: путь от src/assets без расширения ('freeul/01' → cases/freeul/01.jpg, 'svc/ecom/01' → svc/ecom/01.jpg).
 // html — текст с разметкой (<br>, <ul>). pairs: '' — пустая половина (скрыта ≤1199).
 // gap: img [десктоп, ≤1199] (по умолч. 120/60), pairs — число (по умолч. 60), tiles 0 — без зазоров.
+// hero nobtn — без кнопки.
 // r — скругление 10px на 960–1199; round — 20px (≤1199 — 10px). al — выравнивание пары (по умолч. центр).
 export type Pad = [number, number, number?, number?];
 export interface Step { t: string; d: string }
@@ -17,7 +18,7 @@ export type Block =
   | B<{ k: 'pairs'; img: string[][]; gap?: number; al?: 'start' | 'end'; r?: boolean }>
   | B<{ k: 'tiles'; c: 2 | 3 | 4; gap?: 0; img: string[] }>
   | B<{ k: 'site'; href: string }>
-  | B<{ k: 'hero'; h: string; price?: string }>
+  | B<{ k: 'hero'; h: string; price?: string; nobtn?: true }>
   | B<{ k: 'cols'; html: string[] }>
   | B<{ k: 'feat'; h: string; items: string[] }>
   | B<{ k: 'title'; h: string }>

@@ -40,7 +40,7 @@ const arrow = '<i aria-hidden="true"></i>';
     {b.k === 'hero' && <>
       <h1 class="sh__h" set:html={b.h} />
       {b.price && <p class="sh__p">{b.price}</p>}
-      <a class="pill pill--fill sh__btn" href="#contacts">консультация<Fragment set:html={arrow} /></a>
+      {!b.nobtn && <a class="pill pill--fill sh__btn" href="#contacts">консультация<Fragment set:html={arrow} /></a>}
     </>}
     {b.k === 'cols' && <div class="sc">{b.html.map((h) => <p class="sx" set:html={h} />)}</div>}
     {b.k === 'feat' && <div class="sc sf"><h2 class="ct__h" set:html={b.h} /><ul class="sf__list">{b.items.map((t) => <li class="sx" set:html={t} />)}</ul></div>}
@@ -105,7 +105,8 @@ document.querySelectorAll<HTMLElement>('.rv').forEach((s) => {
 .ct--r{margin-left:auto}
 .ct__h{color:#000;font-size:50px;line-height:1.4;font-weight:400}
 .ct__p{color:#000;font-size:16px;line-height:1.8}
-.ct__p ul,.fq__a ul{padding-left:20px;list-style:disc}
+.ct__p ul{padding-left:20px;list-style:disc}
+.fq__a ul{padding-left:26px;list-style:disc}
 .ct__year{color:var(--gray)}
 .ci{display:flex;flex-direction:column;gap:var(--g,120px)}
 .ci--pairs{gap:var(--g,60px)}
@@ -170,18 +171,18 @@ document.querySelectorAll<HTMLElement>('.rv').forEach((s) => {
 .ps__d{color:var(--gray);font-size:16px;line-height:1.8}
 .ps__cta{grid-column:2;margin-left:calc(var(--nw) + 21px);width:260px;height:80px;padding:0}
 /* FAQ (Tilda T585) */
-.fq{padding:0 20px}
+.fq{box-sizing:content-box;max-width:1160px;margin:0 auto;padding:0 20px}
 .fq__i{border-top:1px solid #dadada}
-.fq__q{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:27px 0;color:#000;font-size:16px;line-height:1.8;cursor:pointer;list-style:none}
+.fq__q{position:relative;display:block;padding:27px 50px 27px 0;color:#000;font-size:16px;line-height:1.8;cursor:pointer;list-style:none}
 .fq__q::-webkit-details-marker{display:none}
-.fq__ic{position:relative;flex:none;width:34px;height:34px;border-radius:50%;transition:background-color .2s ease-in-out}
-.fq__ic::before,.fq__ic::after{content:"";position:absolute;top:50%;left:50%;width:22px;height:2px;margin:-1px 0 0 -11px;background:var(--dark);transition:transform .5s ease}
+.fq__ic{position:absolute;top:50%;right:0;width:40px;height:40px;margin-top:-20px;border-radius:50%;transition:background-color .2s ease-in-out,transform .5s ease}
+.fq__ic::before,.fq__ic::after{content:"";position:absolute;top:19px;left:9px;width:22px;height:2px;background:var(--dark)}
 .fq__ic::after{transform:rotate(90deg)}
 .fq__q:hover .fq__ic{background:var(--accent)}
 .fq__q:hover .fq__ic::before,.fq__q:hover .fq__ic::after{background:#222}
-.fq__i.is-open .fq__ic::after{transform:rotate(0)}
+.fq__i.is-open .fq__ic{transform:rotate(-45deg)}
 .fq__w{overflow:hidden}
-.fq__a{padding-bottom:27px;color:var(--gray);font-size:16px;line-height:1.8}
+.fq__a{padding-bottom:40px;color:var(--gray);font-size:16px;line-height:1.8}
 @media (max-width:1679px){
   .gi{width:1360px}
   .ps{--W:1440px;--gl:385px;--tl:41px;--nw:324px;--cw:670px}
@@ -194,6 +195,7 @@ document.querySelectorAll<HTMLElement>('.rv').forEach((s) => {
   .gi{width:1120px}
   .ps{--W:1200px;--gl:325px;--tl:39px;--nw:264px;--cw:550px;--nf:60px}
 }
+@media (max-width:1200px){.fq{max-width:940px;padding:0 10px}}
 @media (max-width:1199px){
   .ct{width:auto}
   .ci,.ci__row{gap:var(--gm,60px)}
@@ -230,6 +232,8 @@ document.querySelectorAll<HTMLElement>('.rv').forEach((s) => {
   .ps__i,.ps__i:first-child,.ps__cta{grid-column:1;grid-row:auto}
   .ps__i{gap:5px}
 }
+@media (max-width:960px){.fq{max-width:600px;padding:0 20px}}
+@media (max-width:640px){.fq__q{padding:15px 50px 14px 0}.fq__a{padding-bottom:25px}}
 @media (max-width:639px){
   .gi{width:440px}
   .ps{--W:480px}
