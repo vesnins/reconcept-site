@@ -1,5 +1,5 @@
 # Сборка
-FROM node:22-alpine AS build
+FROM mirror.gcr.io/library/node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
@@ -10,7 +10,7 @@ ENV PUBLIC_YM_ID=$PUBLIC_YM_ID PUBLIC_INDEX=$PUBLIC_INDEX
 RUN npm run build
 
 # Запуск
-FROM node:22-alpine
+FROM mirror.gcr.io/library/node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=4321 HOST=0.0.0.0
 COPY --from=build /app/dist ./dist
