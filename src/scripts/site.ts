@@ -23,20 +23,16 @@ function loadMetrika() {
 
 window.goal = (name: string) => { if (loaded && window.ym) window.ym(id, 'reachGoal', name); };
 
-let choice: string | null = null;
-try { choice = localStorage.getItem(KEY); } catch {}
-if (choice === 'yes') loadMetrika();
-else if (!choice) banner.hidden = false;
-
-const pick = (v: 'yes' | 'no') => {
+// Метрика включается только после «ок»; до этого плашка показывается на каждой странице.
+let ok = false;
+try { ok = localStorage.getItem(KEY) === 'yes'; } catch {}
+if (ok) loadMetrika();
+else banner.hidden = false;
+document.getElementById('ck-yes')!.addEventListener('click', () => {
   banner.hidden = true;
-  try { localStorage.setItem(KEY, v); } catch {}
-  if (v === 'yes') loadMetrika();
-  else if (loaded) location.reload(); // отзыв согласия — выгружаем счётчик
-};
-document.getElementById('ck-yes')!.addEventListener('click', () => pick('yes'));
-document.getElementById('ck-no')!.addEventListener('click', () => pick('no'));
-document.getElementById('ck-open')?.addEventListener('click', () => { banner.hidden = false; });
+  try { localStorage.setItem(KEY, 'yes'); } catch {}
+  loadMetrika();
+});
 
 // Цели на кнопки и ссылки с data-goal
 document.addEventListener('click', (e) => {
