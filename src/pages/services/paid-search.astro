@@ -1,0 +1,29 @@
+---
+import Direct from '../../layouts/Direct.astro';
+import raw from '../../fragments/direct.html?raw';
+import { SITE } from '../../lib/site';
+
+const url = `${SITE.url}/services/paid-search`;
+const description = 'Настройка и ведение Яндекс Директа: семантика, объявления, лендинг и цели в Метрике. Считаю результат по живым заявкам. Бесплатный разбор рекламы или прогноз заявок.';
+const landing = raw.replaceAll('{TG}', SITE.telegram).replaceAll('{MAX}', SITE.max).replaceAll('{MAIL}', SITE.email);
+
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: 'DIRECT.RECONCEPT',
+  url,
+  description,
+  areaServed: { '@type': 'Country', name: 'Россия' },
+  sameAs: [SITE.telegram],
+  makesOffer: [
+    { '@type': 'Offer', name: 'Настройка и ведение Яндекс Директа, один регион', price: '15000', priceCurrency: 'RUB' },
+    { '@type': 'Offer', name: 'Настройка и ведение Яндекс Директа, вся Россия', price: '30000', priceCurrency: 'RUB' },
+  ],
+};
+---
+<Direct title="Настройка и ведение Яндекс Директа под ключ — DIRECT.RECONCEPT" description={description}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(ld)} />
+  <div class="rule mono" aria-hidden="true">Продвинуть сайт в Яндексе</div>
+  <Fragment set:html={landing} />
+  <script src="../../scripts/direct.ts"></script>
+</Direct>

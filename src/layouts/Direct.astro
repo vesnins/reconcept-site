@@ -1,0 +1,55 @@
+---
+// Лендинг /services/paid-search (перенесён с direct.reconcept.ru): свой визуал, общие cookie/Метрика сайта (scripts/site.ts)
+import '@fontsource-variable/inter';
+import '../styles/direct.css';
+import { SITE, INDEX } from '../lib/site';
+
+interface Props { title: string; description: string }
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname.replace(/(index)?\.html$/, ""), SITE.url).href;
+const year = new Date().getFullYear();
+---
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  {!INDEX && <meta name="robots" content="noindex,nofollow">}
+  <meta name="theme-color" content="#fbfbfb">
+  <link rel="icon" href="/direct/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/direct/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="/direct/apple-touch-icon.png">
+  <link rel="preload" href="/fonts/DepartureMono.woff2" as="font" type="font/woff2" crossorigin>
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:site_name" content={SITE.name}>
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonical}>
+  <meta property="og:image" content={`${SITE.url}/direct/og.png`}>
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <slot name="head" />
+</head>
+<body data-ym={import.meta.env.PUBLIC_YM_ID ?? ''}>
+  <div class="wrap">
+    <header class="top">
+      <span class="logo" id="top">DIRECT.RECONCEPT</span>
+      <p class="tag"><b>Настройка и ведение Яндекс Директа.</b> Сайт и реклама в одних руках.</p>
+    </header>
+    <slot />
+    <footer>
+      <div><span class="logo">DIRECT.RECONCEPT</span><p style="margin-top:8px">© {year} · Настройка и ведение Яндекс Директа</p><p>{SITE.operator} · ИНН {SITE.inn} · ОГРНИП {SITE.ogrnip}</p></div>
+      <nav aria-label="Документы"><a href="/privacy">Политика обработки персональных данных</a></nav>
+      <p class="mono" style="font-size:11px"><a href={SITE.telegram} target="_blank" rel="noopener" data-goal="click_telegram">Telegram</a> · <a href={SITE.max} target="_blank" rel="noopener" data-goal="click_max">MAX</a></p>
+    </footer>
+  </div>
+  <slot name="after" />
+  <div class="cookie" id="cookie" role="region" aria-label="Файлы cookie" hidden><p>Сайт использует cookie и Яндекс Метрику, чтобы становиться удобнее. <a href="/privacy">Подробнее</a></p><div class="ckb"><button class="btn solid" type="button" id="ck-yes">ок</button></div></div>
+  <script src="../scripts/site.ts"></script>
+</body>
+</html>
