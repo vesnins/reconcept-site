@@ -41,7 +41,7 @@ const SECURITY = {
 // 301 со старых адресов Tilda (K11)
 const REDIRECTS = new Map([
   ['/services/naming', '/services/brand-identity-design'],
-  ['/services/website-management', '/services'], ['/services2', '/services'], ['/sitemap.xml', '/sitemap-index.xml'],
+  ['/services/website-management', '/services'], ['/services2', '/services'], ['/sitemap-index.xml', '/sitemap.xml'], ['/sitemap-0.xml', '/sitemap.xml'],
   ...['/portfolio', '/azalia-illustrator', '/video', '/alias'].map((p) => [p, '/']),
   ...['website-development-elastur', 'website-development-sport-innovaciya', 'online-platform-development-etiming', 'website-design-development-enli', 'website-development-prinnnt', 'landing-page-development-shomburg', 'landing-page-development-qruto', 'landing-page-development-agava', 'e-commerce-website-development-artur-valiahmetov'].map((s) => [`/portfolio/${s}`, '/']),
 ]);
