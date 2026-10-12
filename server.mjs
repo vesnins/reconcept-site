@@ -41,9 +41,9 @@ const SECURITY = {
 // 301 со старых адресов Tilda (K11)
 const REDIRECTS = new Map([
   ['/services/naming', '/services/brand-identity-design'],
-  ['/services/website-management', '/services'], ['/services2', '/services'],
+  ['/services/website-management', '/services'], ['/services2', '/services'], ['/sitemap.xml', '/sitemap-index.xml'],
   ...['/portfolio', '/azalia-illustrator', '/video', '/alias'].map((p) => [p, '/']),
-  ...['elastur', 'sport-innovaciya', 'etiming', 'enli', 'prinnnt', 'shomburg', 'qruto', 'agava', 'artur-valiahmetov'].map((s) => [`/portfolio/${s}`, '/']),
+  ...['website-development-elastur', 'website-development-sport-innovaciya', 'online-platform-development-etiming', 'website-design-development-enli', 'website-development-prinnnt', 'landing-page-development-shomburg', 'landing-page-development-qruto', 'landing-page-development-agava', 'e-commerce-website-development-artur-valiahmetov'].map((s) => [`/portfolio/${s}`, '/']),
 ]);
 const redirectTo = (p) => REDIRECTS.get(p) ?? (p.startsWith('/tpost/') ? '/' : null);
 
@@ -96,6 +96,9 @@ http.createServer(async (req, res) => {
   try {
     // Без www и без хвостового слэша
     const url = new URL(req.url, 'http://x');
+    const host = String(req.headers.host || '');
+    if (host.startsWith('www.')) { res.writeHead(301, { Location: `https://${host.slice(4)}${url.pathname}${url.search}` }); return res.end(); }
+    if (url.pathname.endsWith('.html')) { res.writeHead(301, { Location: url.pathname.replace(/(index)?\.html$/, '') || '/' }); return res.end(); }
     if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
       res.writeHead(301, { Location: url.pathname.replace(/\/+$/, '') + url.search }); return res.end();
     }
