@@ -43,3 +43,14 @@ document.addEventListener('click', (e) => {
 });
 
 export {};
+
+// Kinescope: плеер грузится только у видимых видео
+const vids = document.querySelectorAll<HTMLIFrameElement>('iframe[data-src]');
+if (vids.length) {
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    const f = e.target as HTMLIFrameElement;
+    f.src = f.dataset.src!; f.removeAttribute('data-src'); io.unobserve(f);
+  }), { rootMargin: '200px 0px' });
+  vids.forEach((f) => io.observe(f));
+}

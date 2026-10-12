@@ -29,7 +29,7 @@ const arrow = '<i aria-hidden="true"></i>';
   <section class="fq">{b.items.map(([q, a]) => <details class="fq__i"><summary class="fq__q"><span set:html={q} /><span class="fq__ic" aria-hidden="true"></span></summary><div class="fq__w"><div class="fq__a" set:html={a} /></div></details>)}</section>
 ) : (
   <section class:list={['cb', { 'cb--full': b.k === 'tiles' || b.k === 'reviews', 'cb--hero': b.k === 'hero' }]} style={st(b)}>
-    {b.k === 'video' && <div class:list={['cv', { 'cv--r': b.r, 'cv--round': b.round }]} style={b.ratio && `aspect-ratio:${b.ratio}`}><iframe src={`https://kinescope.io/embed/${b.id}?autoplay=1&muted=1&loop=1`} title={title} loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media"></iframe></div>}
+    {b.k === 'video' && <div class:list={['cv', { 'cv--r': b.r, 'cv--round': b.round }]} style={b.ratio && `aspect-ratio:${b.ratio}`}><iframe data-src={`https://kinescope.io/embed/${b.id}?autoplay=1&muted=1&loop=1`} title={title} allow="autoplay; fullscreen; picture-in-picture; encrypted-media"></iframe></div>}
     {b.k === 'intro' && <div class="ct ct--intro"><h1 class="ct__h" set:html={b.h} /><p class="ct__p" set:html={b.html} /><p class="ct__p ct__year">{b.year}</p></div>}
     {b.k === 'text' && <div class:list={['ct', { 'ct--r': b.right }]}>{b.h && <h2 class="ct__h" set:html={b.h} />}<div class="ct__p" set:html={b.html} /></div>}
     {b.k === 'img' && <div class:list={['ci', { 'ci--r': b.r }]}>{b.img.map((n) => <Image class="ci__img" src={pic(n)!} alt="" widths={W} sizes={FULL} loading="lazy" />)}</div>}

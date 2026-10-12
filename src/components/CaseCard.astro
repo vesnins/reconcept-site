@@ -8,7 +8,7 @@ const { c, eager = false } = Astro.props;
   <div class="case__panel" style={`background-color:${c.bg}`}>
     {c.image
       ? <Image class="case__img" src={c.image} alt={c.title} widths={[480, 800, 1200, 1680]} sizes="(max-width:1199px) 100vw, calc(100vw - 500px)" loading={eager ? 'eager' : 'lazy'} />
-      : <div class="case__video" style={c.ratio && `aspect-ratio:${c.ratio}`}>{c.video && <iframe src={`https://kinescope.io/embed/${c.video}?autoplay=1&muted=1&loop=1`} title={c.title} loading="lazy" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" frameborder="0"></iframe>}</div>}
+      : <div class="case__video" style={c.ratio && `aspect-ratio:${c.ratio}`}>{c.video && <iframe data-src={`https://kinescope.io/embed/${c.video}?autoplay=1&muted=1&loop=1`} title={c.title} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" frameborder="0"></iframe>}</div>}
   </div>
   <div class="case__info">
     <h2 class="case__title">{c.title}</h2>
