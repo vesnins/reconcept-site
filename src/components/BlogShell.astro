@@ -1,0 +1,45 @@
+---
+// Лента блога + окно поста. /blog — окно закрыто; /blog/slug — та же лента, окно открыто с постом.
+// Сетка (макет 1215): ряд А [Ш 670][100][У 325], ряд Б [100][У 325][100][Ш 670]; CTA — в узких ячейках 5, 13, 21…
+import Base from '../layouts/Base.astro';
+import BlogCard from './BlogCard.astro';
+import BlogPost from './BlogPost.astro';
+import { BLOG, POSTS, type Post } from '../data/blog';
+import { ill } from '../data/blog-ill';
+import '../styles/blog.css';
+interface Props { post?: Post }
+const { post } = Astro.props;
+
+const items: (Post | 'cta')[] = [...POSTS];
+for (let i = 5; i <= items.length; i += 8) items.splice(i, 0, 'cta');
+const rows: (Post | 'cta')[][] = [];
+for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
+const size = (r: number, c: number) => ((r % 2) ^ c ? 'n' : 'w') as 'w' | 'n';
+---
+<Base title={post ? `${post.title} — Reconcept` : BLOG.title} noindex>
+  <section class="bl" aria-label="Блог">
+    {post ? <p class="sr-only">Блог Reconcept</p> : <h1 class="sr-only">Блог Reconcept</h1>}
+    <div class="bl__feed">
+      {rows.map((row, r) => (
+        <div class={`bl__row${r % 2 ? ' bl__row--b' : ''}`}>
+          {row.map((it, c) => it === 'cta'
+            ? <div class="bc bc--n bc--cta">
+                <div class="bl-ill" set:html={ill('mentor')} />
+                <div class="bc__txt">
+                  <div><h2 class="bc__ttl">Подпишитесь на Телеграм — не пропускайте посты</h2><p class="bc__handle">{BLOG.tgHandle}</p></div>
+                  <a class="bl-btn" href={BLOG.tg} target="_blank" rel="noopener" data-goal="click_blog_tg">Подписаться<i class="bl-arw" aria-hidden="true"></i></a>
+                </div>
+              </div>
+            : <BlogCard post={it} k={size(r, c)} />)}
+        </div>
+      ))}
+    </div>
+  </section>
+  <div class="ov" id="ov" data-title={BLOG.title} hidden={!post}>
+    <div class="ov__bg"></div>
+    <button class="ov__nav ov__nav--p" id="ov-prev" type="button" aria-label="Предыдущий пост"><i class="bl-arw" aria-hidden="true"></i></button>
+    <button class="ov__nav ov__nav--n" id="ov-next" type="button" aria-label="Следующий пост"><i class="bl-arw" aria-hidden="true"></i></button>
+    <div class="ov__sc" id="ov-sc">{post && <BlogPost post={post} />}</div>
+  </div>
+  <script src="../scripts/blog.ts"></script>
+</Base>

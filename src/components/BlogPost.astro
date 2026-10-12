@@ -1,0 +1,21 @@
+---
+// Пост внутри окна (#post). На клиенте подменяется целиком из HTML страницы /blog/slug.
+import { BLOG, POSTS, bySlug, ruDate, type Post } from '../data/blog';
+import { ill } from '../data/blog-ill';
+import BlogCard from './BlogCard.astro';
+interface Props { post: Post }
+const { post } = Astro.props;
+const rel = [...post.rel, ...POSTS.map((p) => p.slug).filter((s) => s !== post.slug && !post.rel.includes(s))].map((s) => bySlug[s]);
+---
+<article class="bp" id="post" data-s={post.slug} role="dialog" aria-modal="true" aria-labelledby="bp-h">
+  <header class="bp__head">
+    <div><h1 id="bp-h">{post.title}</h1><span class="bl-tag">{BLOG.category}</span></div>
+    <a class="bp__x" href="/blog" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></a>
+  </header>
+  <div class="bl-ill bp__cover" set:html={ill(post.ill)} />
+  <p class="bp__meta">Reconcept · <time datetime={post.date}>{ruDate(post.date)}</time> · 5 мин</p>
+  <div class="bp__body">
+    {post.body.map((b) => 'h' in b ? <h2>{b.h}</h2> : 'fig' in b ? <figure><div class="bl-ill io" set:html={ill(b.fig)} />{b.cap && <figcaption>{b.cap}</figcaption>}</figure> : <p set:html={b.p} />)}
+  </div>
+  <section class="bp__rel"><h3>Раз вы уже здесь</h3><div class="bp__strip">{rel.map((p) => <BlogCard post={p} k="n" />)}</div></section>
+</article>
