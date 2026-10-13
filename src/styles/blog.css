@@ -1,18 +1,18 @@
-/* Блог (К13): монохром, линии 0.5px (box-shadow: border Chrome округляет до 1px), прямые углы. Размеры ленты — доли макета 1215 (--u). */
+/* Блог (К13): монохром, линии 0.5px (box-shadow: border Chrome округляет до 1px), прямые углы. Размеры ленты — доли макета 1116 (--u). */
 @font-face{font-family:"Departure Mono";src:url(/fonts/DepartureMono.woff2) format("woff2");font-display:swap}
 /* Страницы блога: свои цвета для шапки, подвала, cookie (файл подключается только в блоге) */
 :root{--dark:#4f483e;--gray:#8a7d6b;--bg:#ece4d9;--line:#8a7d6b}
 .hdr__logo,.hdr__nav a:hover,.ftr__mail,.ftr__info{color:var(--dark)}
 .bl,.ov{--hl:.5px;--ink:#4f483e;--mute:#8a7d6b;--card:#fffbf5;--mono:"Departure Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;color:var(--ink)}
 .bl{padding-inline:var(--gutter)}
-.bl__feed{max-width:1215px;margin:0 auto;padding-block:60px 140px;display:flex;flex-direction:column;container-type:inline-size}
-.bl__row{--u:calc(100cqw / 1215);display:flex;column-gap:calc(100 * var(--u));align-items:flex-start}
+.bl__feed{max-width:1116px;margin:0 auto;padding-block:60px 140px;display:flex;flex-direction:column;container-type:inline-size}
+.bl__row{--u:calc(100cqw / 1116);display:flex;column-gap:calc(100 * var(--u));align-items:flex-start}
 .bl__row--b{padding-left:calc(100 * var(--u));margin-bottom:calc(80 * var(--u))}
 .bl__row>:nth-child(2){margin-top:calc(80 * var(--u))}
 
 .bc{position:relative;display:grid;gap:14px;padding:14px;background:var(--card);box-shadow:inset 0 0 0 var(--hl) var(--ink);color:var(--ink)}
-.bc--w{width:calc(670 * var(--u));height:calc(475 * var(--u));grid-template-columns:46% 1fr}
-.bc--n{width:calc(325 * var(--u));height:calc(475 * var(--u));grid-template-rows:44% 1fr}
+.bc--w{width:calc(591 * var(--u));height:calc(475 * var(--u));grid-template-columns:calc(308 * var(--u)) 1fr}
+.bc--n{width:calc(325 * var(--u));height:calc(475 * var(--u));grid-template-rows:calc(210 * var(--u)) 1fr}
 .bc__txt{display:flex;flex-direction:column;justify-content:space-between;min-width:0}
 .bc__ttl{font-size:28px;line-height:1.1;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
 .bc__foot{display:flex;justify-content:space-between;align-items:center;gap:8px}
