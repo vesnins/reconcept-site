@@ -16,7 +16,7 @@ const rows: (Post | 'cta')[][] = [];
 for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
 const size = (r: number, c: number) => ((r % 2) ^ c ? 'n' : 'w') as 'w' | 'n';
 ---
-<Base title={post ? `${post.title} — Reconcept` : BLOG.title} noindex>
+<Base title={post ? post.seo?.t ?? `${post.title} — Reconcept` : BLOG.title} description={post?.seo?.d} noindex>
   <link slot="head" rel="preload" href="/fonts/DepartureMono.woff2" as="font" type="font/woff2" crossorigin>
   <section class="bl" aria-label="Блог">
     {post ? <p class="sr-only">Блог Reconcept</p> : <h1 class="sr-only">Блог Reconcept</h1>}
@@ -43,4 +43,5 @@ const size = (r: number, c: number) => ((r % 2) ^ c ? 'n' : 'w') as 'w' | 'n';
     <div class="ov__sc" id="ov-sc">{post && <BlogPost post={post} />}</div>
   </div>
   <script src="../scripts/blog.ts"></script>
+  <script src="../scripts/spiral.ts"></script>
 </Base>

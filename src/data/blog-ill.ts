@@ -20,4 +20,6 @@ const ILL: Record<string, string> = {
   }<path class="ln b" ${P} d="M104 86c14-18 24-18 34 0"/><path class="ln" ${P} d="M138 86l-7-2M138 86l1-7"/><text class="lb" x="24" y="160">RU → TEXT V2 → PUBLISH</text>`,
 };
 
-export const ill = (k: string) => `<svg viewBox="0 0 240 180" aria-hidden="true">${ILL[k] ?? ''}</svg>`;
+// Спиральные портреты (scripts/spiral.ts): canvas вместо SVG.
+const SP = new Set(['menteora']);
+export const ill = (k: string) => SP.has(k) ? `<canvas data-sp="${k}" aria-hidden="true"></canvas>` : `<svg viewBox="0 0 240 180" aria-hidden="true">${ILL[k] ?? ''}</svg>`;
