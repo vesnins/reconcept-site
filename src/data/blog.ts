@@ -1,10 +1,8 @@
 // Блог (R60, К13). Посты — пока рыба. Порядок = по дате, новые первыми; от него зависят стрелки ←/→.
 // rel — «Раз вы уже здесь»: связанные посты вручную, по смыслу. ill — ключ иллюстрации из blog-ill.ts.
-// body: { p } абзац (HTML), { lead } подводка, { h } подзаголовок, { ul }/{ ol } списки (HTML), { tbl } таблица (1-я строка — шапка), { fig, cap } иллюстрация с подписью.
-// seo — title/description страницы поста; author — подпись в мете (иначе Reconcept).
-import { menteora } from './posts/menteora';
-export type Block = { p: string } | { lead: string } | { h: string } | { ul: string[] } | { ol: string[] } | { tbl: string[][] } | { fig: string; cap?: string };
-export interface Post { slug: string; title: string; date: string; ill: string; rel: string[]; body: Block[]; seo?: { t: string; d: string }; author?: string }
+// body: { p } абзац (HTML), { h } подзаголовок, { fig, cap } иллюстрация с подписью.
+export type Block = { p: string } | { h: string } | { fig: string; cap?: string };
+export interface Post { slug: string; title: string; date: string; ill: string; rel: string[]; body: Block[] }
 
 export const BLOG = { title: 'Блог — Reconcept', category: 'Кодинг', tg: 'https://t.me/reconcept', tgHandle: '@reconcept' };
 
@@ -21,12 +19,11 @@ const fish = (t: string, ill: string): Block[] => [
 const post = (slug: string, title: string, date: string, ill: string, rel: string[]): Post => ({ slug, title, date, ill, rel, body: fish(title, ill) });
 
 export const POSTS: Post[] = [
-  { slug: 'menteora', title: 'Разработка бота Menteora — учёт стресса в тренировках спортсменов', date: '2026-10-13', ill: 'menteora', rel: ['sevengoals', 'diary-bot'], body: menteora, author: 'Сергей Веснин',
-    seo: { t: 'Разработка Telegram-бота на заказ: кейс Menteora — Reconcept', d: 'Как мы сделали Telegram-бота для спортсменов: интеграция с Garmin, оплата картой и СБП, ML-модели и отказ от них. Разработка ботов на заказ — Reconcept.' } },
-  post('sevengoals', 'SevenGoals', '2026-10-12', 'goals', ['rewriter', 'menteora']),
+  post('sevengoals', 'SevenGoals', '2026-10-12', 'goals', ['rewriter', 'mentor-bot']),
   post('diary-bot', 'Бот электронного дневника', '2026-10-05', 'diary', ['flats-bot', 'sevengoals']),
   post('flats-bot', 'Бот новых объявлений о квартирах', '2026-09-28', 'flats', ['diary-bot', 'rewriter']),
-  post('rewriter', 'Рерайтор-публикатор для блога', '2026-09-14', 'rewrite', ['menteora', 'flats-bot']),
+  post('mentor-bot', 'Бот Ментеора', '2026-09-21', 'mentor', ['sevengoals', 'diary-bot']),
+  post('rewriter', 'Рерайтор-публикатор для блога', '2026-09-14', 'rewrite', ['mentor-bot', 'flats-bot']),
 ];
 
 export const bySlug = Object.fromEntries(POSTS.map((p) => [p.slug, p]));

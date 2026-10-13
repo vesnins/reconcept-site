@@ -14,11 +14,20 @@ const load = (s: string) => {
   return cache.get(s)!;
 };
 
+// Толщина линий иллюстраций = 0.6px на экране при любом масштабе (--k = px на единицу viewBox 240×180)
+const fit = new ResizeObserver((es) => es.forEach((e) => {
+  const { width: w, height: h } = e.contentRect;
+  if (w) (e.target as HTMLElement).style.setProperty('--k', String(Math.min(w / 240, h / 180)));
+}));
+const fitAll = (r: ParentNode) => r.querySelectorAll('.bl-ill').forEach((el) => fit.observe(el));
+fitAll(document);
+
 const io = new IntersectionObserver((es) => es.forEach((e) => {
   if (e.isIntersecting) { e.target.classList.add('play'); io.unobserve(e.target); }
 }), { root: sc, threshold: 0.4 });
 
 function mount() {
+  fitAll(sc);
   sc.querySelectorAll('.io').forEach((el) => io.observe(el));
   const s = cur(); if (!s) return;
   const i = order.indexOf(s);
