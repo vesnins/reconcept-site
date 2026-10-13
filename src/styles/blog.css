@@ -25,7 +25,9 @@
 
 /* Иллюстрации: точечная сетка 1px/шаг 2px; покой = финальный кадр; прорисовка по ховеру и при появлении (.play) */
 .bl-ill{position:relative;overflow:hidden;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'%3E%3Crect width='1' height='1' fill='%238a7d6b' fill-opacity='.25'/%3E%3C/svg%3E")}
-.bl-ill :is(svg,canvas){position:absolute;inset:0;width:100%;height:100%}
+.bl-ill :is(svg,.sp){position:absolute;inset:0;width:100%;height:100%}
+.bl-ill .sp{object-fit:cover;object-position:59% 47%}
+.bl-ill .sp[src$="-cam.svg"]{object-position:50% 30%}
 .bl-ill .ln{fill:none;stroke:var(--ink);stroke-width:calc(.6 / var(--k,1));stroke-dasharray:1 1;stroke-dashoffset:0}
 .bl-ill .ln.b{stroke-width:calc(1.2 / var(--k,1))}
 .bl-ill .fl{fill:var(--ink)}

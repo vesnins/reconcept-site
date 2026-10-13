@@ -13,7 +13,7 @@ const rel = [...post.rel, ...POSTS.map((p) => p.slug).filter((s) => s !== post.s
     <div><h1 id="bp-h">{post.title}</h1><span class="bl-tag">{BLOG.category}</span></div>
     <a class="bp__x" href="/blog" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></a>
   </header>
-  <div class="bl-ill bp__cover" set:html={ill(post.ill)} />
+  <div class="bl-ill bp__cover" set:html={ill(post.cover ?? post.ill)} />
   <p class="bp__meta">{post.author ?? 'Reconcept'} · <time datetime={post.date}>{ruDate(post.date)}</time> · {Math.max(1, Math.round(words / 180))} мин</p>
   <div class="bp__body">
     {post.body.map((b) => 'h' in b ? <h2>{b.h}</h2>

@@ -1,10 +1,10 @@
 // Блог (R60, К13). Посты — пока рыба. Порядок = по дате, новые первыми; от него зависят стрелки ←/→.
 // rel — «Раз вы уже здесь»: связанные посты вручную, по смыслу. ill — ключ иллюстрации из blog-ill.ts.
 // body: { p } абзац (HTML), { lead } подводка, { h } подзаголовок, { ul }/{ ol } списки (HTML), { tbl } таблица (1-я строка — шапка), { fig, cap } иллюстрация с подписью.
-// card — заголовок превью (иначе title); seo — title/description страницы; author — подпись в мете (иначе Reconcept).
+// card — заголовок превью (иначе title); cover — иллюстрация внутри поста (иначе ill); seo — title/description страницы; author — подпись в мете (иначе Reconcept).
 import { menteora } from './posts/menteora';
 export type Block = { p: string } | { lead: string } | { h: string } | { ul: string[] } | { ol: string[] } | { tbl: string[][] } | { fig: string; cap?: string };
-export interface Post { slug: string; title: string; card?: string; date: string; ill: string; rel: string[]; body: Block[]; seo?: { t: string; d: string }; author?: string }
+export interface Post { slug: string; title: string; card?: string; date: string; ill: string; cover?: string; rel: string[]; body: Block[]; seo?: { t: string; d: string }; author?: string }
 
 export const BLOG = { title: 'Блог — Reconcept', category: 'Кодинг', tg: 'https://t.me/reconcept', tgHandle: '@reconcept' };
 
@@ -21,7 +21,7 @@ const fish = (t: string, ill: string): Block[] => [
 const post = (slug: string, title: string, date: string, ill: string, rel: string[]): Post => ({ slug, title, date, ill, rel, body: fish(title, ill) });
 
 export const POSTS: Post[] = [
-  { slug: 'menteora', title: 'Разработка бота Menteora — учёт стресса в тренировках спортсменов', card: 'Телеграм-бот Menteora', date: '2026-10-13', ill: 'menteora', rel: ['sevengoals', 'diary-bot'], body: menteora, author: 'Сергей Веснин',
+  { slug: 'menteora', title: 'Разработка бота Menteora — учёт стресса в тренировках спортсменов', card: 'Телеграм-бот Menteora', date: '2026-10-13', ill: 'menteora', cover: 'menteora-cam', rel: ['sevengoals', 'diary-bot'], body: menteora, author: 'Сергей Веснин',
     seo: { t: 'Разработка Telegram-бота на заказ: кейс Menteora — Reconcept', d: 'Как мы сделали Telegram-бота для спортсменов: интеграция с Garmin, оплата картой и СБП, ML-модели и отказ от них. Разработка ботов на заказ — Reconcept.' } },
   post('sevengoals', 'SevenGoals', '2026-10-12', 'goals', ['rewriter', 'menteora']),
   post('diary-bot', 'Бот электронного дневника', '2026-10-05', 'diary', ['flats-bot', 'sevengoals']),
