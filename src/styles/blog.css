@@ -24,6 +24,8 @@
 .bl-ill .ln{fill:none;stroke:var(--dark);stroke-width:.6;vector-effect:non-scaling-stroke;stroke-dasharray:1 1;stroke-dashoffset:0}
 .bl-ill .ln.b{stroke-width:1.2}
 .bl-ill .fl{fill:var(--dark)}
+.bl-ill .ln.bx{fill:#fff}
+.bl-ill .d{fill:none;stroke:var(--dark);stroke-width:.6;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
 .bl-ill .lb{fill:var(--dark);font:7px ui-monospace,Menlo,monospace;letter-spacing:.04em}
 @keyframes bl-draw{from{stroke-dashoffset:1}}
 .bc:hover .ln,.play .ln{animation:bl-draw 1.6s cubic-bezier(.4,0,.2,1) both}
@@ -51,6 +53,14 @@ html:has(.ov:not([hidden])){overflow:hidden}
 .bp__body{display:flex;flex-direction:column;gap:14px}
 .bp__body h2{margin-top:22px;font-size:24px;line-height:1.2;font-weight:600}
 .bp__body p{font-size:18px;line-height:1.55;max-width:62ch}
+.bp__body .bp__lead{font-size:22px;line-height:1.4;font-weight:500;text-wrap:pretty}
+.bp__body ul{list-style:disc}.bp__body ol{list-style:decimal}
+.bp__body :is(ul,ol){display:grid;gap:8px;padding-left:1.25em;font-size:18px;line-height:1.55;max-width:62ch}
+.bp__body a{text-decoration:underline}
+.bp__tbl{overflow-x:auto}
+.bp__body table{width:100%;border-collapse:collapse;font-size:16px;line-height:1.4}
+.bp__body :is(th,td){padding:10px 12px;border:var(--hl) solid var(--dark);text-align:left;vertical-align:top}
+.bp__body th{font-weight:600}
 .bp__body figure .bl-ill{aspect-ratio:16/9}
 .bp__body figcaption{margin-top:6px;font:12px ui-monospace,Menlo,monospace;color:var(--gray)}
 .bp__rel{margin-top:56px;padding-top:24px;border-top:var(--hl) solid var(--dark)}
@@ -72,6 +82,9 @@ html:has(.ov:not([hidden])){overflow:hidden}
   .bp{padding:16px;min-height:0}
   .bp__head{margin-bottom:32px}
   .bp__head h1{font-size:32px}
-  .bp__body p{font-size:17px}
+  .bp__body p,.bp__body :is(ul,ol){font-size:17px}
+  .bp__body .bp__lead{font-size:19px}
+  .bp__body table{font-size:14px}
+  .bp__body :is(th,td){padding:8px}
 }
 @media (prefers-reduced-motion:reduce){.bl *,.ov *{animation:none!important;transition:none!important}}
