@@ -5,6 +5,7 @@
 import { menteora } from './posts/menteora';
 import { sevengoals } from './posts/sevengoals';
 import { esdnevnik } from './posts/esdnevnik';
+import { haloOglasi } from './posts/halo-oglasi';
 export type Block = { p: string } | { lead: string } | { h: string } | { ul: string[] } | { ol: string[] } | { tbl: string[][] } | { fig: string; cap?: string };
 export interface Post { slug: string; title: string; card?: string; date: string; ill: string; cover?: string; rel: string[]; body: Block[]; seo?: { t: string; d: string }; author?: string }
 
@@ -23,14 +24,15 @@ const fish = (t: string, ill: string): Block[] => [
 const post = (slug: string, title: string, date: string, ill: string, rel: string[]): Post => ({ slug, title, date, ill, rel, body: fish(title, ill) });
 
 export const POSTS: Post[] = [
+  { slug: 'halo-oglasi-bot', title: 'Поднял сервер на старом телефоне Samsung и сделал там бота для сообщений о новых квартирах в Белграде', card: 'Телеграм-бот для Halo Oglasi', date: '2026-10-14', ill: 'halo-oglasi', cover: 'halo-oglasi-in', rel: ['esdnevnik', 'menteora'], body: haloOglasi, author: 'Сергей Веснин',
+    seo: { t: 'Разработка мобильного приложения на заказ: бот-парсер Halo Oglasi — Reconcept', d: 'Как мы сделали бота, который парсит сайт недвижимости и за 3–5 минут шлёт новые квартиры в Telegram: Cloudflare, сервер на Android-телефоне. Разработка приложений на заказ.' } },
   { slug: 'esdnevnik', title: 'Бот для сербского школьного дневника: от идеи до полного контроля над оценками', card: 'Телеграм-бот для esDnevnik', date: '2026-10-14', ill: 'esdnevnik', cover: 'esdnevnik-in', rel: ['menteora', 'sevengoals'], body: esdnevnik, author: 'Сергей Веснин',
     seo: { t: 'Разработка мобильного приложения на заказ: кейс esDnevnik — Reconcept', d: 'Как мы сделали Telegram-бота для электронного дневника: обход блокировки через WireGuard, оплата в Telegram Stars, 3 языка. Разработка приложений на заказ.' } },
   { slug: 'menteora', title: 'Разработка бота Menteora — учёт стресса в тренировках спортсменов', card: 'Телеграм-бот Menteora', date: '2026-10-13', ill: 'menteora', cover: 'menteora-cam', rel: ['sevengoals', 'esdnevnik'], body: menteora, author: 'Сергей Веснин',
     seo: { t: 'Разработка Telegram-бота на заказ: кейс Menteora — Reconcept', d: 'Как мы сделали Telegram-бота для спортсменов: интеграция с Garmin, оплата картой и СБП, ML-модели и отказ от них. Разработка ботов на заказ — Reconcept.' } },
-  post('flats-bot', 'Бот новых объявлений о квартирах', '2026-10-12', 'flats', ['esdnevnik', 'rewriter']),
   { slug: 'sevengoals', title: 'Я разработал приложение, которое помогает найти главную цель в жизни, и оно лежит в App Store. Вот где я ошибся', card: 'Приложение SevenGoals', date: '2026-09-28', ill: 'sevengoals', cover: 'sevengoals-in', rel: ['menteora', 'rewriter'], body: sevengoals, author: 'Сергей Веснин',
     seo: { t: 'Разработка мобильного приложения на заказ: кейс SevenGoals — Reconcept', d: 'Как мы сделали iOS и Android-приложение на React Native и Firebase: отказ Apple, тестирование в Google Play, ошибки полуночи и летнего времени. Разработка приложений на заказ.' } },
-  post('rewriter', 'Рерайтор-публикатор для блога', '2026-09-14', 'rewrite', ['menteora', 'flats-bot']),
+  post('rewriter', 'Рерайтор-публикатор для блога', '2026-09-14', 'rewrite', ['menteora', 'halo-oglasi-bot']),
 ];
 
 export const bySlug = Object.fromEntries(POSTS.map((p) => [p.slug, p]));
