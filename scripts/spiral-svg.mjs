@@ -20,4 +20,4 @@ for (let i = 0; ; i++) {
   }
   if (t > TMAX) break;
 }
-writeFileSync(out, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 2000"><path d="${d}" fill="none" stroke="#4f483e" stroke-width="2.2"/></svg>`);
+writeFileSync(out, `<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="2000" viewBox="0 0 2000 2000"><path d="${d}" fill="none" stroke="#4f483e" stroke-width="2.2"/></svg>`);
