@@ -6,6 +6,7 @@ import BlogCard from './BlogCard.astro';
 import BlogPost from './BlogPost.astro';
 import { BLOG, POSTS, type Post } from '../data/blog';
 import { ill } from '../data/blog-ill';
+import { SITE } from '../lib/site';
 import '../styles/blog.css';
 interface Props { post?: Post }
 const { post } = Astro.props;
@@ -16,8 +17,9 @@ const rows: (Post | 'cta')[][] = [];
 for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
 const size = (r: number, c: number) => ((r % 2) ^ c ? 'n' : 'w') as 'w' | 'n';
 ---
-<Base title={post ? post.seo?.t ?? `${post.title} — Reconcept` : BLOG.title} description={post?.seo?.d} noindex>
+<Base title={post ? post.seo?.t ?? `${post.title} — Reconcept` : BLOG.title} description={post ? post.seo?.d : BLOG.description} article={post && { date: post.date, author: post.author }}>
   <link slot="head" rel="preload" href="/fonts/DepartureMono.woff2" as="font" type="font/woff2" crossorigin>
+  {post && <script slot="head" type="application/ld+json" set:html={JSON.stringify({ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title, description: post.seo?.d, datePublished: post.date, dateModified: post.upd ?? post.date, inLanguage: 'ru', url: `${SITE.url}/blog/${post.slug}`, mainEntityOfPage: `${SITE.url}/blog/${post.slug}`, image: `${SITE.url}/og.png`, author: { '@type': 'Person', name: post.author ?? 'Reconcept' }, publisher: { '@type': 'Organization', name: 'Reconcept', url: SITE.url } })} />}
   <section class="bl" aria-label="Блог">
     {post ? <p class="sr-only">Блог Reconcept</p> : <h1 class="sr-only">Блог Reconcept</h1>}
     <div class="bl__feed">

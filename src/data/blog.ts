@@ -8,9 +8,9 @@ import { esdnevnik } from './posts/esdnevnik';
 import { haloOglasi } from './posts/halo-oglasi';
 import { aiNewsRewriter } from './posts/ai-news-rewriter';
 export type Block = { p: string } | { lead: string } | { h: string } | { ul: string[] } | { ol: string[] } | { tbl: string[][] } | { fig: string; cap?: string };
-export interface Post { slug: string; title: string; card?: string; date: string; ill: string; cover?: string; rel: string[]; body: Block[]; seo?: { t: string; d: string }; author?: string }
+export interface Post { slug: string; title: string; card?: string; date: string; ill: string; cover?: string; rel: string[]; body: Block[]; seo?: { t: string; d: string }; author?: string; upd?: string }
 
-export const BLOG = { title: 'Блог — Reconcept', category: 'Кодинг', tg: 'https://t.me/reconcept', tgHandle: '@reconcept' };
+export const BLOG = { title: 'Блог — Reconcept', description: 'Блог Reconcept: как мы разрабатываем Telegram-ботов, мобильные приложения и автоматизацию — реальные проекты, решения и ошибки.', category: 'Кодинг', tg: 'https://t.me/reconcept', tgHandle: '@reconcept' };
 
 export const POSTS: Post[] = [
   { slug: 'menteora', title: 'Разработка бота Menteora — учёт стресса в тренировках спортсменов', card: 'Телеграм-бот Menteora', date: '2026-10-08', ill: 'menteora', cover: 'menteora-cam', rel: ['sevengoals', 'esdnevnik'], body: menteora, author: 'Сергей Веснин',
