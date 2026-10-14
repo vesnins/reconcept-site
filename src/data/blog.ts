@@ -3,6 +3,7 @@
 // body: { p } абзац (HTML), { lead } подводка, { h } подзаголовок, { ul }/{ ol } списки (HTML), { tbl } таблица (1-я строка — шапка), { fig, cap } иллюстрация с подписью.
 // card — заголовок превью (иначе title); cover — иллюстрация внутри поста (иначе ill); seo — title/description страницы; author — подпись в мете (иначе Reconcept).
 import { menteora } from './posts/menteora';
+import { sevengoals } from './posts/sevengoals';
 export type Block = { p: string } | { lead: string } | { h: string } | { ul: string[] } | { ol: string[] } | { tbl: string[][] } | { fig: string; cap?: string };
 export interface Post { slug: string; title: string; card?: string; date: string; ill: string; cover?: string; rel: string[]; body: Block[]; seo?: { t: string; d: string }; author?: string }
 
@@ -23,9 +24,10 @@ const post = (slug: string, title: string, date: string, ill: string, rel: strin
 export const POSTS: Post[] = [
   { slug: 'menteora', title: 'Разработка бота Menteora — учёт стресса в тренировках спортсменов', card: 'Телеграм-бот Menteora', date: '2026-10-13', ill: 'menteora', cover: 'menteora-cam', rel: ['sevengoals', 'diary-bot'], body: menteora, author: 'Сергей Веснин',
     seo: { t: 'Разработка Telegram-бота на заказ: кейс Menteora — Reconcept', d: 'Как мы сделали Telegram-бота для спортсменов: интеграция с Garmin, оплата картой и СБП, ML-модели и отказ от них. Разработка ботов на заказ — Reconcept.' } },
-  post('sevengoals', 'SevenGoals', '2026-10-12', 'goals', ['rewriter', 'menteora']),
+  post('flats-bot', 'Бот новых объявлений о квартирах', '2026-10-12', 'flats', ['diary-bot', 'rewriter']),
   post('diary-bot', 'Бот электронного дневника', '2026-10-05', 'diary', ['flats-bot', 'sevengoals']),
-  post('flats-bot', 'Бот новых объявлений о квартирах', '2026-09-28', 'flats', ['diary-bot', 'rewriter']),
+  { slug: 'sevengoals', title: 'Я разработал приложение, которое помогает найти главную цель в жизни, и оно лежит в App Store. Вот где я ошибся', card: 'Приложение SevenGoals', date: '2026-09-28', ill: 'sevengoals', cover: 'sevengoals-in', rel: ['menteora', 'rewriter'], body: sevengoals, author: 'Сергей Веснин',
+    seo: { t: 'Разработка мобильного приложения на заказ: кейс SevenGoals — Reconcept', d: 'Как мы сделали iOS и Android-приложение на React Native и Firebase: отказ Apple, тестирование в Google Play, ошибки полуночи и летнего времени. Разработка приложений на заказ.' } },
   post('rewriter', 'Рерайтор-публикатор для блога', '2026-09-14', 'rewrite', ['menteora', 'flats-bot']),
 ];
 

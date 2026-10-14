@@ -21,5 +21,5 @@ const ILL: Record<string, string> = {
 };
 
 // Спиральные портреты: готовый SVG из public/blog (генератор — scripts/spiral-svg.mjs), обрезка object-fit: cover.
-const SP = new Set(['menteora', 'menteora-cam']);
+const SP = new Set(['menteora', 'menteora-cam', 'sevengoals', 'sevengoals-in']);
 export const ill = (k: string) => SP.has(k) ? `<img class="sp" src="/blog/${k}.svg" alt="" decoding="async">` : `<svg viewBox="0 0 240 180" aria-hidden="true">${ILL[k] ?? ''}</svg>`;
