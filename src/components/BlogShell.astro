@@ -24,13 +24,13 @@ const size = (r: number, c: number) => ((r % 2) ^ c ? 'n' : 'w') as 'w' | 'n';
       {rows.map((row, r) => (
         <div class={`bl__row${r % 2 ? ' bl__row--b' : ''}`}>
           {row.map((it, c) => it === 'cta'
-            ? <div class="bc bc--n bc--cta">
+            ? <a class="bc bc--n bc--cta" href={BLOG.tg} target="_blank" rel="noopener" data-goal="click_blog_tg">
                 <div class="bl-ill" set:html={ill('mentor')} />
                 <div class="bc__txt">
                   <div><h2 class="bc__ttl">Подпишитесь на Телеграм — не пропускайте посты</h2><p class="bc__handle">{BLOG.tgHandle}</p></div>
-                  <a class="bl-btn" href={BLOG.tg} target="_blank" rel="noopener" data-goal="click_blog_tg">Подписаться<i class="bl-arw" aria-hidden="true"></i></a>
+                  <span class="bl-btn">Подписаться<i class="bl-arw" aria-hidden="true"></i></span>
                 </div>
-              </div>
+              </a>
             : <BlogCard post={it} k={size(r, c)} />)}
         </div>
       ))}

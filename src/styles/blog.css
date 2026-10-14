@@ -32,6 +32,7 @@
 .bl-ill .sp[src$="/halo-oglasi-in.svg"]{object-position:50% 38%}
 .bl-ill .sp[src$="/ai-news-rewriter.svg"]{object-position:46% 50%}
 .bl-ill .sp[src$="/ai-news-rewriter-in.svg"]{object-position:50% 30%}
+.bl-ill .sp[src$="/mentor.svg"]{object-position:50% 22%}
 .bl-ill .ln{fill:none;stroke:var(--ink);stroke-width:calc(.6 / var(--k,1));stroke-dasharray:1 1;stroke-dashoffset:0}
 .bl-ill .ln.b{stroke-width:calc(1.2 / var(--k,1))}
 .bl-ill .fl{fill:var(--ink)}
