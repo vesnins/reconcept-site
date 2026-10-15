@@ -5,6 +5,8 @@ const sc = document.getElementById('ov-sc')!;
 const feedTitle = ov.dataset.title!;
 const order = [...document.querySelectorAll<HTMLAnchorElement>('.bl__feed a.bc[data-s]')].map((a) => a.dataset.s!);
 const url = (s: string) => `/blog/${s}`;
+let ref = location.href;
+const track = (t: string) => { window.hit?.(location.href, t, ref); ref = location.href; };
 const cur = () => sc.querySelector<HTMLElement>('#post')?.dataset.s;
 
 const cache = new Map<string, Promise<Document>>();
@@ -78,12 +80,13 @@ async function show(s: string, mode: 'push' | 'replace' | 'none') {
   if (ov.hidden && d.startViewTransition) d.startViewTransition(swap); else swap();
   if (mode === 'push') history.pushState({ blog: 1 }, '', url(s));
   if (mode === 'replace') history.replaceState(history.state, '', url(s));
+  track(doc.title);
 }
 
-function hide() { ov.hidden = true; document.title = feedTitle; sc.replaceChildren(); }
+function hide() { ov.hidden = true; document.title = feedTitle; sc.replaceChildren(); track(feedTitle); }
 function close() {
   if (history.state?.blog) history.back();
-  else { hide(); history.replaceState(null, '', '/blog'); }
+  else { history.replaceState(null, '', '/blog'); hide(); }
 }
 function step(dir: 1 | -1) {
   const i = order.indexOf(cur()!);

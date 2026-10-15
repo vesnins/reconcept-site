@@ -2,13 +2,13 @@
 // Превью поста: w — широкая (иллюстрация слева), n — узкая (иллюстрация сверху).
 import { BLOG, type Post } from '../data/blog';
 import { ill } from '../data/blog-ill';
-interface Props { post: Post; k: 'w' | 'n' }
-const { post, k } = Astro.props;
+interface Props { post: Post; k: 'w' | 'n'; h?: 'h2' | 'h3' }
+const { post, k, h: H = 'h2' } = Astro.props;
 ---
 <a class={`bc bc--${k}`} href={`/blog/${post.slug}`} data-s={post.slug}>
   <div class="bl-ill" set:html={ill(post.ill)} />
   <div class="bc__txt">
-    <h2 class="bc__ttl">{post.card ?? post.title}</h2>
+    <H class="bc__ttl">{post.card ?? post.title}</H>
     <div class="bc__foot"><span class="bl-tag">{BLOG.category}</span><i class="bl-arw" aria-hidden="true"></i></div>
   </div>
 </a>

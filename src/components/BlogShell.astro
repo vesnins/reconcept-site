@@ -16,10 +16,25 @@ for (let i = 5; i <= items.length; i += 8) items.splice(i, 0, 'cta');
 const rows: (Post | 'cta')[][] = [];
 for (let i = 0; i < items.length; i += 2) rows.push(items.slice(i, i + 2));
 const size = (r: number, c: number) => ((r % 2) ^ c ? 'n' : 'w') as 'w' | 'n';
+
+// Schema.org: лента — Blog со списком постов; пост — BlogPosting + хлебные крошки
+const u = (p = '') => `${SITE.url}/blog${p && `/${p}`}`, og = `/og/${post?.slug ?? 'blog'}.png`, dt = (d: string) => `${d}T10:00:00+03:00`;
+const org = { '@type': 'Organization', name: 'Reconcept', url: SITE.url, logo: `${SITE.url}/apple-touch-icon.png` };
+const ld = post ? [
+  { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title, description: post.seo?.d, image: SITE.url + og, datePublished: dt(post.date), dateModified: dt(post.upd ?? post.date), inLanguage: 'ru', articleSection: BLOG.category, url: u(post.slug), mainEntityOfPage: u(post.slug), isPartOf: { '@type': 'Blog', name: BLOG.title, url: u() }, author: { '@type': 'Person', name: post.author ?? 'Reconcept', url: `${SITE.url}/contacts` }, publisher: org },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [['Главная', `${SITE.url}/`], ['Блог', u()], [post.title, u(post.slug)]].map(([name, item], i) => ({ '@type': 'ListItem', position: i + 1, name, item })) },
+] : { '@context': 'https://schema.org', '@type': 'Blog', name: BLOG.title, description: BLOG.description, url: u(), inLanguage: 'ru', publisher: org, blogPost: POSTS.map((p) => ({ '@type': 'BlogPosting', headline: p.title, url: u(p.slug), datePublished: dt(p.date), image: `${SITE.url}/og/${p.slug}.png` })) };
 ---
-<Base title={post ? post.seo?.t ?? `${post.title} — Reconcept` : BLOG.title} description={post ? post.seo?.d : BLOG.description} article={post && { date: post.date, author: post.author }}>
+<Base title={post ? post.seo?.t ?? `${post.title} — Reconcept` : BLOG.title} description={post ? post.seo?.d : BLOG.description} image={og} article={post && { date: dt(post.date), author: post.author }}>
   <link slot="head" rel="preload" href="/fonts/DepartureMono.woff2" as="font" type="font/woff2" crossorigin>
-  {post && <script slot="head" type="application/ld+json" set:html={JSON.stringify({ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title, description: post.seo?.d, datePublished: post.date, dateModified: post.upd ?? post.date, inLanguage: 'ru', url: `${SITE.url}/blog/${post.slug}`, mainEntityOfPage: `${SITE.url}/blog/${post.slug}`, image: `${SITE.url}/og.png`, author: { '@type': 'Person', name: post.author ?? 'Reconcept' }, publisher: { '@type': 'Organization', name: 'Reconcept', url: SITE.url } })} />}
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(ld)} />
+  <link slot="head" rel="alternate" type="application/rss+xml" title={BLOG.title} href="/blog/rss.xml">
+  <div class="ov" id="ov" data-title={BLOG.title} hidden={!post}>
+    <div class="ov__bg"></div>
+    <button class="ov__nav ov__nav--p" id="ov-prev" type="button" aria-label="Предыдущий пост"><i class="bl-arw" aria-hidden="true"></i></button>
+    <button class="ov__nav ov__nav--n" id="ov-next" type="button" aria-label="Следующий пост"><i class="bl-arw" aria-hidden="true"></i></button>
+    <div class="ov__sc" id="ov-sc">{post && <BlogPost post={post} />}</div>
+  </div>
   <section class="bl" aria-label="Блог">
     {post ? <p class="sr-only">Блог Reconcept</p> : <h1 class="sr-only">Блог Reconcept</h1>}
     <div class="bl__feed">
@@ -38,11 +53,5 @@ const size = (r: number, c: number) => ((r % 2) ^ c ? 'n' : 'w') as 'w' | 'n';
       ))}
     </div>
   </section>
-  <div class="ov" id="ov" data-title={BLOG.title} hidden={!post}>
-    <div class="ov__bg"></div>
-    <button class="ov__nav ov__nav--p" id="ov-prev" type="button" aria-label="Предыдущий пост"><i class="bl-arw" aria-hidden="true"></i></button>
-    <button class="ov__nav ov__nav--n" id="ov-next" type="button" aria-label="Следующий пост"><i class="bl-arw" aria-hidden="true"></i></button>
-    <div class="ov__sc" id="ov-sc">{post && <BlogPost post={post} />}</div>
-  </div>
   <script src="../scripts/blog.ts"></script>
 </Base>

@@ -24,5 +24,5 @@ const rel = [...post.rel, ...POSTS.map((p) => p.slug).filter((s) => s !== post.s
       : 'fig' in b ? <figure><div class="bl-ill io" set:html={ill(b.fig)} />{b.cap && <figcaption>{b.cap}</figcaption>}</figure>
       : <p set:html={b.p} />)}
   </div>
-  <section class="bp__rel"><h3>Раз вы уже здесь</h3><div class="bp__strip">{rel.map((p) => <BlogCard post={p} k="n" />)}</div></section>
+  <section class="bp__rel"><h2>Раз вы уже здесь</h2><div class="bp__strip">{rel.map((p) => <BlogCard post={p} k="n" h="h3" />)}</div></section>
 </article>

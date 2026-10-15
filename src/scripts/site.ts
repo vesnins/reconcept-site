@@ -1,6 +1,6 @@
 // Cookie-согласие и Яндекс Метрика: счётчик грузится только после «Принять».
 declare global {
-  interface Window { ym?: (...a: unknown[]) => void; goal: (name: string) => void }
+  interface Window { ym?: (...a: unknown[]) => void; goal: (name: string) => void; hit: (url: string, title: string, referer: string) => void }
 }
 
 const KEY = 'ck';
@@ -22,6 +22,8 @@ function loadMetrika() {
 }
 
 window.goal = (name: string) => { if (loaded && window.ym) window.ym(id, 'reachGoal', name); };
+// Просмотр страницы без перезагрузки (блог: пост открывается через history.pushState)
+window.hit = (url, title, referer) => { if (loaded && window.ym) window.ym(id, 'hit', url, { title, referer }); };
 
 // Метрика включается только после «ок»; до этого плашка показывается на каждой странице.
 let ok = false;
