@@ -11,7 +11,7 @@ export async function GET() {
   const node = el({ width: 1200, height: 630, padding: 24, background: '#2563eb', color: '#fff' },
     el({ flex: 1, flexDirection: 'column', justifyContent: 'space-between', padding: 56, border: '2px dashed rgba(255,255,255,.9)', fontFamily: 'Mono', fontSize: 24 }, [
       el({}, 'RECONCEPT / РАЗРАБОТКА'),
-      el({ fontFamily: 'Inter', fontWeight: 600, fontSize: 84, lineHeight: 1, letterSpacing: -1.5, maxWidth: 900 }, 'Автоматизирую рутину малого бизнеса'),
+      el({ fontFamily: 'Inter', fontWeight: 600, fontSize: 84, lineHeight: 1, letterSpacing: -1.5, maxWidth: 900 }, 'Разработка Telegram-ботов и автоматизация бизнеса'),
       el({ color: 'rgba(255,255,255,.8)' }, 'БОТЫ · ПРИЛОЖЕНИЯ · САЙТЫ · ИНТЕГРАЦИИ'),
     ]));
   const svg = await satori(node as never, { width: 1200, height: 630, fonts: [

@@ -5,8 +5,8 @@ import { SITE } from '../../lib/site';
 import { POSTS, ruDate, authorUrl } from '../../data/blog';
 
 const url = `${SITE.url}/services/development`;
-const title = 'Разработка Telegram-ботов, приложений и автоматизации — Reconcept';
-const description = 'Боты Telegram и MAX, мобильные приложения, парсеры, интеграции и сайты для малого бизнеса. Фиксированная цена, код ваш. Разработчик с 2010 года.';
+const title = 'Разработка Telegram-ботов и ботов MAX на заказ — Reconcept';
+const description = 'Разработка Telegram-ботов и ботов MAX, приложений, парсеров и интеграций для малого бизнеса. Цена от 30 000 ₽, срок от недели, код ваш.';
 
 const ar = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4"/></svg>';
 const arL = '<svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4"/></svg>';
@@ -15,25 +15,28 @@ const bubble = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stro
 const cross = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
 const dirs = [
-  ['Telegram', 'Боты Telegram', 'Заявки, запись, рассылки, оплата и личный кабинет в мессенджере.'],
-  ['MAX', 'Боты MAX', 'Новые боты и перенос готовых из Telegram с учётом отличий API.'],
-  ['Приложения', 'Мобильные приложения', 'iOS и Android, от прототипа до публикации в App Store, Google Play и RuStore.'],
-  ['Парсеры', 'Парсеры и ИИ', 'Сбор данных с сайтов, обработка текстов нейросетями, автопубликация.'],
-  ['Сайты', 'Сайты', 'Быстрые сайты на современном стеке, без привязки к конструкторам.'],
-  ['Интеграции', 'Интеграции', 'CRM, оплата, таблицы, 1С и мессенджеры в одной системе.'],
-  ['Сервер', 'Свой сервер', 'Переезд с Tilda и других конструкторов на сервер в РФ. Пример — этот сайт.'],
+  ['Telegram', 'Разработка Telegram-ботов', 'Заявки, запись, рассылки, оплата и личный кабинет в мессенджере.'],
+  ['MAX', 'Боты для MAX', 'Новые боты и перенос готовых ботов из Telegram в MAX с учётом отличий API.'],
+  ['Приложения', 'Разработка приложений', 'iOS и Android, от прототипа до публикации в App Store, Google Play и RuStore.'],
+  ['Парсеры', 'Парсеры и ИИ-автоматизация', 'Сбор данных с сайтов, обработка текстов нейросетями, автопубликация.'],
+  ['Сайты', 'Разработка сайтов', 'Быстрые сайты на современном стеке, без привязки к конструкторам.'],
+  ['Интеграции', 'Интеграции с CRM и 1С', 'CRM, оплата, таблицы, 1С и мессенджеры в одной системе.'],
+  ['Сервер', 'Перенос с Tilda на сервер', 'Переезд с Tilda и других конструкторов на сервер в РФ. Пример — этот сайт.'],
   ['Ставка', '3000 ₽ в час', 'Доработки и поддержка. Новые проекты — по фиксированной цене.'],
 ];
 const cases = POSTS.slice(0, 4).map((p) => ({ href: `/blog/${p.slug}`, t: p.card ?? p.title, d: (p.seo?.d ?? '').replace(/\s*Разработка[^.]*на заказ[^.]*\.?\s*$/, ''), date: ruDate(p.date) }));
 const plans = [
-  ['Простой бот', '30 000', '1 неделя'],
+  ['Простой Telegram-бот', '30 000', '1 неделя'],
   ['Бот с базой, оплатой, админкой', '80 000', '3 недели', 1],
   ['Парсер / ИИ', '40 000', '2 недели'],
   ['Интеграция', '25 000', '1 неделя'],
-  ['Переезд на сервер', '40 000', '1 неделя'],
-  ['Приложение', '250 000', '2 месяца'],
+  ['Переезд с Tilda на сервер', '40 000', '1 неделя'],
+  ['Мобильное приложение', '250 000', '2 месяца'],
 ] as [string, string, string, number?][];
 const faq = [
+  ['Сколько стоит разработка Telegram-бота?', 'От 30 000 ₽ за простого бота, от 80 000 ₽ — с базой данных, оплатой и админкой. Точную цену называю после бесплатного разбора задачи.'],
+  ['Сколько времени занимает разработка бота?', 'Простой бот — от недели, бот с оплатой и админкой — от трёх недель.'],
+  ['Можно ли перенести бота из Telegram в MAX?', 'Да. API MAX отличается от Telegram, поэтому часть кода переписываю. Бот может работать в обоих мессенджерах одновременно.'],
   ['Кому принадлежит код?', 'Вам: код, доступы, сервер.'],
   ['Нужно ли техзадание?', 'Нет. Составлю его сам после разбора.'],
   ['Работаете по договору?', 'Да, по договору с ИП, оплата по счёту.'],
@@ -57,11 +60,13 @@ const ld = [
   { '@context': 'https://schema.org', '@type': 'ProfessionalService', name: 'Reconcept — разработка', url, description,
     areaServed: { '@type': 'Country', name: 'Россия' }, sameAs: [SITE.telegram], email: SITE.email,
     founder: { '@type': 'Person', name: 'Сергей Веснин', url: `${SITE.url}${authorUrl}` },
+    priceRange: 'от 25 000 ₽', serviceType: ['Разработка Telegram-ботов', 'Разработка ботов MAX', 'Разработка мобильных приложений', 'Парсеры', 'Интеграции', 'Разработка сайтов'],
     makesOffer: plans.map(([n, p]) => ({ '@type': 'Offer', name: n, priceSpecification: { '@type': 'PriceSpecification', minPrice: p.replace(/\s/g, ''), priceCurrency: 'RUB' } })) },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [['Главная', '/'], ['Услуги', '/services'], ['Разработка', '/services/development']].map(([name, u], i) => ({ '@type': 'ListItem', position: i + 1, name, item: `${SITE.url}${u === '/' ? '/' : u}` })) },
   { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
 ];
 ---
-<Dev title={title} description={description} noindex>{/* noindex и вне sitemap — до утверждения владельцем */}
+<Dev title={title} description={description}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(ld)} />
   <div class="page"><div class="ctn">
     <header class="hd">
@@ -79,8 +84,8 @@ const ld = [
       <section class="hero">
         <i class="cn cn--tl" aria-hidden="true"></i>
         <div class="hero-l"><div>
-          <h1 class="h1">Автоматизирую <em>рутину</em> малого бизнеса</h1>
-          <p class="hero-sub">Боты, приложения, сайты и интеграции. Пишу код сам и общаюсь с вами напрямую.</p>
+          <h1 class="h1">Разработка Telegram-ботов и <em>автоматизация</em> бизнеса</h1>
+          <p class="hero-sub">Боты Telegram и MAX, приложения, парсеры и интеграции под ключ. Пишу код сам и общаюсь с вами напрямую.</p>
           <a class="btn" href={SITE.telegram} target="_blank" rel="noopener" data-goal="click_telegram">Написать в Telegram <Fragment set:html={ar} /></a>
         </div></div>
         <div class="hero-r" aria-hidden="true">
@@ -103,7 +108,7 @@ const ld = [
         <div class="two-l">
           <i class="cn cn--tl cn--d" aria-hidden="true"></i>
           <span class="bd bd--w bd-abs">Кто делает</span>
-          <p class="mxl"><em>Сергей Веснин</em> пишет код с 2010 года: сайты, Telegram-боты, мобильные приложения и автоматизацию для бизнеса.</p>
+          <p class="mxl"><a class="nl" href={authorUrl}><em>Сергей Веснин</em></a>, пишу код с 2010 года: сайты, Telegram-боты, мобильные приложения и автоматизацию для бизнеса.</p>
         </div>
         <div class="two-r">
           <i class="cn cn--br cn--d" aria-hidden="true"></i>
@@ -188,12 +193,12 @@ const ld = [
         <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
         <span class="bd bd--w bd-abs">Цены</span>
         <div class="sec-c">
-          <h2 class="h2 h2w">Цена известна <em>до начала работы</em></h2>
+          <h2 class="h2 h2w">Стоимость разработки <em>известна до начала работы</em></h2>
           <p class="lede">Фиксированная стоимость после разбора задачи. Указаны минимальные цены.</p>
           <div class="pgr">
             {plans.map(([n, p, s, top]) => <div class:list={['pl', { 'pl--top': top }]}>
               {top && <span class="plb">Чаще всего</span>}
-              <h3>{n}</h3><p class="pp">{p} ₽</p><p class="pper">от, за проект</p>
+              <h3>{n}</h3><p class="pp">{p} ₽</p><p class="pper">минимум за проект</p>
               <ul class="plim"><li><strong>{s}</strong><span>срок от</span></li></ul>
             </div>)}
             <div class="pacc">
@@ -210,7 +215,7 @@ const ld = [
         <div class="sec-c">
           <h2 class="h2 h2w">Частые вопросы</h2>
           <div class="fq">
-            {faq.map(([q, a]) => <details><summary>{q}<span class="fqi" aria-hidden="true"></span></summary><p>{a}</p></details>)}
+            {faq.map(([q, a]) => <details><summary>{q}<svg class="fqi" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0 7h14M7 0v14"/></svg></summary><p>{a}</p></details>)}
           </div>
         </div>
       </section>

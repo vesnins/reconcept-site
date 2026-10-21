@@ -28,6 +28,8 @@ a{color:inherit}
 @media(max-width:479px){.hd-sub{display:none}}
 
 /* общее */
+[id]{scroll-margin-top:60px}
+.nl{color:inherit;text-decoration:none}
 .mn{display:flex;flex-direction:column;gap:5.625px}
 .cn{--s:solid;position:absolute;width:45px;height:45px;pointer-events:none}
 .cn--d{--s:dashed}
@@ -230,9 +232,7 @@ a{color:inherit}
 .fq details+details{border-top:1px dashed #fff}
 .fq summary{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:22.5px;cursor:pointer;list-style:none;font:500 15px/1.25 var(--mono);text-transform:uppercase}
 .fq summary::-webkit-details-marker{display:none}
-.fqi{position:relative;flex:0 0 14px;height:14px}
-.fqi::before,.fqi::after{content:"";position:absolute;left:0;top:50%;width:14px;border-top:1px solid #fff}
-.fqi::after{transform:rotate(90deg)}
+.fqi{flex-shrink:0}
 .fq details[open] .fqi{transform:rotate(45deg)}
 .fq details p{margin:0;padding:0 22.5px 22.5px;max-width:720px;font-size:13.125px;line-height:1.625;color:var(--t2)}
 
