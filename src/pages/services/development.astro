@@ -1,0 +1,249 @@
+---
+// Лендинг разработки (К15). Тексты — здесь; кейсы — 4 последних поста блога (data/blog.ts).
+import Dev from '../../layouts/Dev.astro';
+import { SITE } from '../../lib/site';
+import { POSTS, ruDate, authorUrl } from '../../data/blog';
+
+const url = `${SITE.url}/services/development`;
+const title = 'Разработка Telegram-ботов, приложений и автоматизации — Reconcept';
+const description = 'Боты Telegram и MAX, мобильные приложения, парсеры, интеграции и сайты для малого бизнеса. Фиксированная цена, код ваш. Разработчик с 2010 года.';
+
+const ar = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4"/></svg>';
+const arL = '<svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4"/></svg>';
+const doc = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M2.5 1h5l2 2v8h-7zM7.5 1v2h2"/></svg>';
+const bubble = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>';
+const cross = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+const dirs = [
+  ['Telegram', 'Боты Telegram', 'Заявки, запись, рассылки, оплата и личный кабинет в мессенджере.'],
+  ['MAX', 'Боты MAX', 'Новые боты и перенос готовых из Telegram с учётом отличий API.'],
+  ['Приложения', 'Мобильные приложения', 'iOS и Android, от прототипа до публикации в App Store, Google Play и RuStore.'],
+  ['Парсеры', 'Парсеры и ИИ', 'Сбор данных с сайтов, обработка текстов нейросетями, автопубликация.'],
+  ['Сайты', 'Сайты', 'Быстрые сайты на современном стеке, без привязки к конструкторам.'],
+  ['Интеграции', 'Интеграции', 'CRM, оплата, таблицы, 1С и мессенджеры в одной системе.'],
+  ['Сервер', 'Свой сервер', 'Переезд с Tilda и других конструкторов на сервер в РФ. Пример — этот сайт.'],
+  ['Ставка', '3000 ₽ в час', 'Доработки и поддержка. Новые проекты — по фиксированной цене.'],
+];
+const cases = POSTS.slice(0, 4).map((p) => ({ href: `/blog/${p.slug}`, t: p.card ?? p.title, d: (p.seo?.d ?? '').replace(/\s*Разработка[^.]*на заказ[^.]*\.?\s*$/, ''), date: ruDate(p.date) }));
+const plans = [
+  ['Простой бот', '30 000', '1 неделя'],
+  ['Бот с базой, оплатой, админкой', '80 000', '3 недели', 1],
+  ['Парсер / ИИ', '40 000', '2 недели'],
+  ['Интеграция', '25 000', '1 неделя'],
+  ['Переезд на сервер', '40 000', '1 неделя'],
+  ['Приложение', '250 000', '2 месяца'],
+] as [string, string, string, number?][];
+const faq = [
+  ['Кому принадлежит код?', 'Вам: код, доступы, сервер.'],
+  ['Нужно ли техзадание?', 'Нет. Составлю его сам после разбора.'],
+  ['Работаете по договору?', 'Да, по договору с ИП, оплата по счёту.'],
+  ['Что если бот перестанет работать?', 'Исправлю. Ошибки в моём коде — бесплатно в течение месяца после запуска, дальше 3000 ₽/ч.'],
+  ['Зачем бот в MAX?', 'Часть клиентов уже там, а Telegram в РФ работает с перебоями. Один бот может работать в обоих мессенджерах.'],
+];
+const contacts = [
+  ['Telegram', SITE.telegram, 'click_telegram'],
+  ['MAX', SITE.max, 'click_max'],
+  ['WhatsApp', SITE.whatsapp, 'click_whatsapp'],
+  [SITE.email, `mailto:${SITE.email}`, 'click_email'],
+];
+// Разделители сетки «Направлений»: md — 2×4, xl — 4×2
+const fdiv = [
+  ['v md', '50%'], ['h md', '25%'], ['h md', '50%'], ['h md', '75%'],
+  ['v xl', '25%'], ['v xl', '50%'], ['v xl', '75%'], ['h xl', '50%'],
+];
+const fdot = [['md', '50%', '25%'], ['md', '50%', '50%'], ['md', '50%', '75%'], ['xl', '25%', '50%'], ['xl', '50%', '50%'], ['xl', '75%', '50%']];
+
+const ld = [
+  { '@context': 'https://schema.org', '@type': 'ProfessionalService', name: 'Reconcept — разработка', url, description,
+    areaServed: { '@type': 'Country', name: 'Россия' }, sameAs: [SITE.telegram], email: SITE.email,
+    founder: { '@type': 'Person', name: 'Сергей Веснин', url: `${SITE.url}${authorUrl}` },
+    makesOffer: plans.map(([n, p]) => ({ '@type': 'Offer', name: n, priceSpecification: { '@type': 'PriceSpecification', minPrice: p.replace(/\s/g, ''), priceCurrency: 'RUB' } })) },
+  { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
+];
+---
+<Dev title={title} description={description} noindex>{/* noindex и вне sitemap — до утверждения владельцем */}
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(ld)} />
+  <div class="page"><div class="ctn">
+    <header class="hd">
+      <div class="hd-bar">
+        <a class="hd-logo" href="/" aria-label="Reconcept — главная">RE</a>
+        <span class="hd-mid">Reconcept <span class="hd-sub">· разработка</span></span>
+        <div class="hd-cta">
+          <a class="hd-a hd-a--2" href="#cases"><Fragment set:html={ar} />Кейсы</a>
+          <a class="hd-a" href={SITE.telegram} target="_blank" rel="noopener" data-goal="click_telegram"><Fragment set:html={ar} />Написать</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="mn">
+      <section class="hero">
+        <i class="cn cn--tl" aria-hidden="true"></i>
+        <div class="hero-l"><div>
+          <h1 class="h1">Автоматизирую <em>рутину</em> малого бизнеса</h1>
+          <p class="hero-sub">Боты, приложения, сайты и интеграции. Пишу код сам и общаюсь с вами напрямую.</p>
+          <a class="btn" href={SITE.telegram} target="_blank" rel="noopener" data-goal="click_telegram">Написать в Telegram <Fragment set:html={ar} /></a>
+        </div></div>
+        <div class="hero-r" aria-hidden="true">
+          <i class="cn cn--br"></i>
+          <div class="chat"><div class="chat-d"></div><div class="chat-in"><div class="msgs">
+            {[['Задача', 'w72', '', [100, 80, 67]], ['Код', 'w64', ' msg--r', [100, 83]], ['Результат', 'w56', '', [100, 67]]].map(([h, w, r, ls], i) => (
+              <div class={`msg ${w}${r}`} style={`--d:${i * .45}s`}>
+                <div class="sh-o"></div><div class="sh-i"></div>
+                <div class="bub"><div class="bub-h mo"><Fragment set:html={ar} />{h}</div>
+                  <div class="lines">{(ls as number[]).map((l, j) => <span class="ln" style={`width:${l}%;--d:${i * .45 + .3 + j * .08}s`}></span>)}</div>
+                </div>
+              </div>
+            ))}
+          </div></div></div>
+        </div>
+      </section>
+
+      <section class="two">
+        <i class="dv" aria-hidden="true"></i>
+        <div class="two-l">
+          <i class="cn cn--tl cn--d" aria-hidden="true"></i>
+          <span class="bd bd--w bd-abs">Кто делает</span>
+          <p class="mxl"><em>Сергей Веснин</em> пишет код с 2010 года: сайты, Telegram-боты, мобильные приложения и автоматизацию для бизнеса.</p>
+        </div>
+        <div class="two-r">
+          <i class="cn cn--br cn--d" aria-hidden="true"></i>
+          <div class="two-rt"><span class="bd bd--l">Reconcept</span></div>
+          <div class="two-rx">
+            <p>Разработка — часть веб-студии Reconcept. Среди клиентов — Эластур, E-Timing, KPMI.</p>
+            <p>Без менеджеров и испорченного телефона. Каждый проект разбираю в <a class="il" href={authorUrl}>блоге</a>: архитектура, ошибки, цифры.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec setup" data-seq>
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Как работаю</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">От задачи до запуска</h2>
+          <div class="flow">
+            <article class="stg">
+              <div class="stg-h"><span>01</span><span>РАЗБОР</span></div>
+              <div class="vis" aria-hidden="true"><div class="brw">
+                <div class="bar"><span></span><span></span><span></span></div>
+                <div class="url"><span class="prt">задача:&nbsp;</span><span class="utx">бот для записи</span><span class="crt"></span></div>
+                <div class="cbtn">Разобрать <Fragment set:html={ar} /></div>
+              </div></div>
+              <div class="cp"><h3>Опишите задачу</h3><p>Разберу процесс и предложу решение со сроком и ценой. Бесплатно.</p></div>
+            </article>
+            <div class="con" aria-hidden="true"><span class="con-l"></span><Fragment set:html={arL} /><span class="pulse"></span></div>
+            <article class="stg stg--2">
+              <div class="stg-h"><span>02</span><span>РАЗРАБОТКА</span></div>
+              <div class="vis" aria-hidden="true"><span class="scan"></span><div class="idx"><div class="ig">
+                {['Бот', 'База данных', 'Оплата', 'Админка'].map((t) => <div class="pg"><Fragment set:html={doc} /><span>{t}</span><span class="pgc">✓</span></div>)}
+              </div><div class="st"><span class="sdot"></span>Тесты пройдены</div></div></div>
+              <div class="cp"><h3>Пишу и показываю</h3><p>Рабочая версия каждую неделю, без сюрпризов в конце.</p></div>
+            </article>
+            <div class="con con--2" aria-hidden="true"><span class="con-l"></span><Fragment set:html={arL} /><span class="pulse"></span></div>
+            <article class="stg stg--3">
+              <div class="stg-h"><span>03</span><span>ЗАПУСК</span></div>
+              <div class="vis" aria-hidden="true"><div class="site">
+                <div class="sbar"><span></span><span></span><span></span></div>
+                <div class="snav"><span class="slogo"></span><span></span><span></span><span></span></div>
+                <div class="sbody"><span></span><span></span><span></span><span></span><span></span></div>
+              </div>
+                <div class="cht"><div class="cht-h">Ваш бот</div><div class="cht-m"><span class="ctx">Запись: 14:00 ✓</span></div></div>
+                <div class="lbtn"><span class="li li--c"><Fragment set:html={bubble} /></span><span class="li li--x"><Fragment set:html={cross} /></span></div>
+              </div>
+              <div class="cp"><h3>Запускаю и сопровождаю</h3><p>Размещаю на вашем сервере. Код и доступы — ваши.</p></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Направления</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w fhw">Делаю то, что <em>экономит ваше время</em></h2>
+          <div class="fg">
+            {fdiv.map(([c, p]) => <i class={`fd ${c}`} style={`--p:${p}`} aria-hidden="true"></i>)}
+            {fdot.map(([c, x, y]) => <i class={`fo ${c}`} style={`--x:${x};--y:${y}`} aria-hidden="true"></i>)}
+            {dirs.map(([l, t, d]) => <div class="fc"><p class="lb lb--f"><Fragment set:html={ar} />{l}</p><h3 class="ct">{t}</h3><p class="cd">{d}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="cases">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Кейсы</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Разбираю проекты <em>в блоге</em></h2>
+          <div class="sg">
+            {cases.map((c, i) => <a class="card" href={c.href}><span class="card-s" aria-hidden="true"></span><span class="card-i">
+              <span class="lb"><Fragment set:html={ar} />Кейс · {c.date}</span>
+              <span class="ic mo" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span class="ct">{c.t}</span><span class="cd">{c.d}</span>
+            </span></a>)}
+          </div>
+          <a class="cta cta--a" href="/blog">Все кейсы <Fragment set:html={arL} /></a>
+        </div>
+      </section>
+
+      <section class="sec pr">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Цены</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Цена известна <em>до начала работы</em></h2>
+          <p class="lede">Фиксированная стоимость после разбора задачи. Указаны минимальные цены.</p>
+          <div class="pgr">
+            {plans.map(([n, p, s, top]) => <div class:list={['pl', { 'pl--top': top }]}>
+              {top && <span class="plb">Чаще всего</span>}
+              <h3>{n}</h3><p class="pp">{p} ₽</p><p class="pper">от, за проект</p>
+              <ul class="plim"><li><strong>{s}</strong><span>срок от</span></li></ul>
+            </div>)}
+            <div class="pacc">
+              <a class="cta cta--p" href={SITE.telegram} target="_blank" rel="noopener" data-goal="click_telegram">Написать <Fragment set:html={arL} /></a>
+              <p>Доработки и поддержка — 3000 ₽/ч.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Вопросы</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Частые вопросы</h2>
+          <div class="fq">
+            {faq.map(([q, a]) => <details><summary>{q}<span class="fqi" aria-hidden="true"></span></summary><p>{a}</p></details>)}
+          </div>
+        </div>
+      </section>
+
+      <a class="big" href={SITE.telegram} target="_blank" rel="noopener" data-goal="click_telegram" aria-label="Написать в Telegram">
+        <svg viewBox="0 0 1000 132" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="stp" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="2" fill="currentColor"/></pattern></defs><text x="0" y="128" textLength="1000" lengthAdjust="spacingAndGlyphs" font-size="174" font-weight="900" fill="url(#stp)">НАПИШИТЕ</text></svg>
+      </a>
+
+      <section class="sec ctc" id="contacts">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Контакты</span>
+        <div class="cc">
+          <div class="ci">
+            <h2 class="h2">Расскажите о задаче — <em>предложу решение</em></h2>
+            <p>Пишите в удобный мессенджер. Отвечаю сам, обычно в течение дня.</p>
+          </div>
+          <div class="card"><span class="card-s" aria-hidden="true"></span><div class="cf">
+            {contacts.map(([t, h, g], i) => <a class:list={['cta', { 'cta--p': !i }]} href={h} target={i < 3 ? '_blank' : undefined} rel={i < 3 ? 'noopener' : undefined} data-goal={g}>{t} <Fragment set:html={arL} /></a>)}
+          </div></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bt"><div class="bt-in">
+      <a class="bt-t" href="/">©Reconcept 2010–{new Date().getFullYear()}</a>
+      <span class="bt-logo" aria-hidden="true">RE</span>
+      <a class="bt-t bt-r" href="/privacy">Политика конфиденциальности</a>
+    </div></footer>
+  </div></div>
+  <a slot="after" class="lch" href={SITE.telegram} target="_blank" rel="noopener" data-goal="click_telegram" aria-label="Написать в Telegram"><Fragment set:html={bubble.replace(/20/g, '24')} /></a>
+  <script>
+    // Анимация «Как работаю» идёт, только пока секция на экране
+    const s = document.querySelector<HTMLElement>('[data-seq]');
+    if (s) new IntersectionObserver(([e]) => { s.dataset.on = e.isIntersecting ? '1' : ''; }).observe(s);
+  </script>
+</Dev>
