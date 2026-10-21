@@ -4,7 +4,7 @@
 import Base from '../layouts/Base.astro';
 import BlogCard from './BlogCard.astro';
 import BlogPost from './BlogPost.astro';
-import { BLOG, POSTS, type Post } from '../data/blog';
+import { AUTHOR, BLOG, POSTS, authorUrl, type Post } from '../data/blog';
 import { ill } from '../data/blog-ill';
 import { SITE } from '../lib/site';
 import '../styles/blog.css';
@@ -21,7 +21,7 @@ const size = (r: number, c: number) => ((r % 2) ^ c ? 'n' : 'w') as 'w' | 'n';
 const u = (p = '') => `${SITE.url}/blog${p && `/${p}`}`, og = `/og/${post?.slug ?? 'blog'}.png`, dt = (d: string) => `${d}T10:00:00+03:00`;
 const org = { '@type': 'Organization', name: 'Reconcept', url: SITE.url, logo: `${SITE.url}/apple-touch-icon.png` };
 const ld = post ? [
-  { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title, description: post.seo?.d, image: SITE.url + og, datePublished: dt(post.date), dateModified: dt(post.upd ?? post.date), inLanguage: 'ru', articleSection: BLOG.category, url: u(post.slug), mainEntityOfPage: u(post.slug), isPartOf: { '@type': 'Blog', name: BLOG.title, url: u() }, author: { '@type': 'Person', name: post.author ?? 'Reconcept', url: `${SITE.url}/contacts` }, publisher: org },
+  { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title, description: post.seo?.d, image: SITE.url + og, datePublished: dt(post.date), dateModified: dt(post.upd ?? post.date), inLanguage: 'ru', articleSection: BLOG.category, url: u(post.slug), mainEntityOfPage: u(post.slug), isPartOf: { '@type': 'Blog', name: BLOG.title, url: u() }, author: post.author === AUTHOR.name ? { '@type': 'Person', '@id': `${SITE.url + authorUrl}#person`, name: AUTHOR.name, url: SITE.url + authorUrl } : { '@type': 'Organization', name: 'Reconcept', url: SITE.url }, publisher: org },
   { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [['Главная', `${SITE.url}/`], ['Блог', u()], [post.title, u(post.slug)]].map(([name, item], i) => ({ '@type': 'ListItem', position: i + 1, name, item })) },
 ] : { '@context': 'https://schema.org', '@type': 'Blog', name: BLOG.title, description: BLOG.description, url: u(), inLanguage: 'ru', publisher: org, blogPost: POSTS.map((p) => ({ '@type': 'BlogPosting', headline: p.title, url: u(p.slug), datePublished: dt(p.date), image: `${SITE.url}/og/${p.slug}.png` })) };
 ---

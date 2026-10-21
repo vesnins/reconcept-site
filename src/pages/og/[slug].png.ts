@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import sharp from 'sharp';
-import { POSTS, ruDate } from '../../data/blog';
+import { AUTHOR, POSTS, ruDate } from '../../data/blog';
 
 const f = (n: string) => readFileSync(`${process.cwd()}/src/og/${n}`);
 const fonts = [
@@ -17,6 +17,7 @@ const W = 1200, H = 630, IW = 540, INK = '#4f483e', MUTE = '#8a7d6b';
 type P = { ttl: string; ill: string; meta: string };
 export const getStaticPaths = () => [
   ...POSTS.map((p) => ({ params: { slug: p.slug }, props: { ttl: p.card ?? p.title, ill: p.cover ?? p.ill, meta: `${p.author ?? 'Reconcept'} · ${ruDate(p.date)}` } })),
+  { params: { slug: AUTHOR.slug }, props: { ttl: AUTHOR.name, ill: AUTHOR.ill, meta: 'Автор блога' } },
   { params: { slug: 'blog' }, props: { ttl: 'Блог Reconcept', ill: 'mentor', meta: 'Кодинг' } },
 ];
 

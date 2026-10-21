@@ -3,8 +3,8 @@
 /* Страницы блога: свои цвета для шапки, подвала, cookie (файл подключается только в блоге) */
 :root{--dark:#4f483e;--gray:#8a7d6b;--bg:#ece4d9;--line:#8a7d6b}
 .hdr__logo,.hdr__nav a:hover,.ftr__mail,.ftr__info{color:var(--dark)}
-.bl,.ov{--hl:.5px;--ink:#4f483e;--mute:#8a7d6b;--card:#fffbf5;--mono:"Departure Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;color:var(--ink)}
-.bl{padding-inline:var(--gutter)}
+.bl,.ov,.au{--hl:.5px;--ink:#4f483e;--mute:#8a7d6b;--card:#fffbf5;--mono:"Departure Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;color:var(--ink)}
+.bl,.au-w{padding-inline:var(--gutter)}
 .bl__feed{max-width:1116px;margin:0 auto;padding-block:60px 140px;display:flex;flex-direction:column;container-type:inline-size}
 .bl__row{--u:calc(100cqw / 1116);display:flex;column-gap:calc(100 * var(--u));align-items:flex-start}
 .bl__row--b{padding-left:calc(100 * var(--u));margin-bottom:calc(80 * var(--u))}
@@ -33,6 +33,7 @@
 .bl-ill .sp[src$="/ai-news-rewriter.svg"]{object-position:46% 50%}
 .bl-ill .sp[src$="/ai-news-rewriter-in.svg"]{object-position:50% 30%}
 .bl-ill .sp[src$="/mentor.svg"]{object-position:50% 22%}
+.bl-ill .sp[src$="/author.svg"]{object-position:50% 30%}
 .bl-ill .ln{fill:none;stroke:var(--ink);stroke-width:calc(.6 / var(--k,1));stroke-dasharray:1 1;stroke-dashoffset:0}
 .bl-ill .ln.b{stroke-width:calc(1.2 / var(--k,1))}
 .bl-ill .fl{fill:var(--ink)}
@@ -79,7 +80,28 @@ html:has(.ov:not([hidden])){overflow:hidden}
 .bp__strip .bc{flex:none;width:240px;height:340px;grid-template-rows:150px 1fr;scroll-snap-align:start}
 .bp__strip .bc__ttl{font-size:20px}
 
+/* Страница автора */
+.au{max-width:1116px;margin:0 auto;padding-block:60px 140px}
+.au__top{display:grid;grid-template-columns:325px 1fr;gap:56px;align-items:start}
+.au__ph{aspect-ratio:3/4;box-shadow:inset 0 0 0 var(--hl) var(--ink)}
+.au h1{margin-bottom:14px;font-size:44px;line-height:1.05;font-weight:600;letter-spacing:-.02em}
+.au__role{margin-bottom:32px;font:12px/1.6 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.au__bio{display:grid;gap:14px;margin-bottom:32px}
+.au__bio p{font-size:18px;line-height:1.4;max-width:62ch;text-wrap:pretty}
+.au__links{display:flex;flex-wrap:wrap;gap:8px}
+.au__posts{margin-top:80px;padding-top:24px;box-shadow:inset 0 var(--hl) 0 var(--ink)}
+.au__posts>h2{margin-bottom:14px;font-size:20px;font-weight:600}
+.au__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.au__grid .bc{height:340px;grid-template-rows:150px 1fr}
+.au__grid .bc__ttl{font-size:20px}
+.bp__meta a{text-decoration:underline;text-decoration-thickness:.5px;text-underline-offset:3px}
+
 @media (max-width:959px){
+  .au{padding-block:24px 80px}
+  .au__top{grid-template-columns:1fr;gap:24px}
+  .au__ph{max-width:325px}
+  .au h1{font-size:32px}
+  .au__posts{margin-top:48px}
   .bl__feed{padding-block:24px 80px}
   .bl__row{flex-direction:column;align-items:stretch;row-gap:16px;padding-left:0;margin-bottom:16px}
   .bl__row>:nth-child(2){margin-top:0}
@@ -93,4 +115,4 @@ html:has(.ov:not([hidden])){overflow:hidden}
   .bp__head{margin-bottom:32px}
   .bp__head h1{font-size:32px}
 }
-@media (prefers-reduced-motion:reduce){.bl *,.ov *{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){:is(.bl,.ov,.au) *{animation:none!important;transition:none!important}}

@@ -25,5 +25,12 @@ export const POSTS: Post[] = [
     seo: { t: 'ИИ-парсер и рерайтер новостей для WordPress — Reconcept', d: 'ИИ-робот находит новости в RSS, пишет заметки в стиле автора и кладёт черновики в WordPress. Gemini из России, cron, Telegram. Разработка на заказ.' } },
 ];
 
+// Автор (страница /blog/author/sergei-vesnin, Schema.org Person). links — профили (sameAs).
+export const AUTHOR = { slug: 'sergei-vesnin', name: 'Сергей Веснин', en: 'Sergei Vesnin', role: 'Основатель веб-студии Reconcept, разработчик', photo: '/blog/sergei-vesnin.jpg', ill: 'author',
+  bio: ['С 2010 года делаю сайты, мобильные приложения, Telegram-ботов и рекламу для бизнеса. Работаю с клиентами по всему миру, среди них Эластур, E-Timing и KPMI. С двумя клиентами по Яндекс Директу работаю уже 5 лет.',
+    'С 2010 года написал в блоге Reconcept больше 600 статей о разработке, веб-дизайне, маркетинге и UX. Сейчас пишу только о том, что сделал сам: от идеи и архитектуры до публикации в App Store, с ошибками и цифрами.'],
+  links: [['LinkedIn', 'https://www.linkedin.com/in/vesninsergey/'], ['GitHub', 'https://github.com/vesnins'], ['Telegram', 'https://t.me/vesnin']] as [string, string][] };
+export const authorUrl = `/blog/author/${AUTHOR.slug}`;
+
 export const bySlug = Object.fromEntries(POSTS.map((p) => [p.slug, p]));
 export const ruDate = (d: string) => d.split('-').reverse().join('.');

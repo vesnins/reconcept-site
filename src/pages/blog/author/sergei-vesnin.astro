@@ -1,0 +1,33 @@
+---
+// Страница автора блога (E-E-A-T): ProfilePage + Person. Данные — AUTHOR в src/data/blog.ts.
+import Base from '../../../layouts/Base.astro';
+import BlogCard from '../../../components/BlogCard.astro';
+import { AUTHOR, POSTS, authorUrl } from '../../../data/blog';
+import { ill } from '../../../data/blog-ill';
+import { SITE } from '../../../lib/site';
+import '../../../styles/blog.css';
+const posts = POSTS.filter((p) => p.author === AUTHOR.name);
+const url = SITE.url + authorUrl, title = `${AUTHOR.name} — основатель Reconcept, разработчик`;
+const description = 'Сергей Веснин — основатель веб-студии Reconcept. С 2010 года делает сайты, мобильные приложения и Telegram-ботов. Разборы своих проектов в блоге.';
+const ld = { '@context': 'https://schema.org', '@type': 'ProfilePage', url, name: title, inLanguage: 'ru',
+  mainEntity: { '@type': 'Person', '@id': `${url}#person`, name: AUTHOR.name, alternateName: AUTHOR.en, url, image: SITE.url + AUTHOR.photo, jobTitle: 'Основатель, разработчик', description: AUTHOR.bio[0],
+    worksFor: { '@type': 'Organization', name: 'Reconcept', url: SITE.url }, knowsAbout: ['Веб-разработка', 'Мобильные приложения', 'Telegram-боты', 'Контекстная реклама'], sameAs: AUTHOR.links.map(([, h]) => h) },
+  hasPart: posts.map((p) => ({ '@type': 'BlogPosting', headline: p.title, url: `${SITE.url}/blog/${p.slug}`, datePublished: `${p.date}T10:00:00+03:00` })) };
+---
+<Base title={title} description={description} image={`/og/${AUTHOR.slug}.png`}>
+  <link slot="head" rel="preload" href="/fonts/DepartureMono.woff2" as="font" type="font/woff2" crossorigin>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(ld)} />
+  <div class="au-w"><article class="au">
+    <div class="au__top">
+      <div class="bl-ill au__ph" role="img" aria-label={AUTHOR.name} set:html={ill(AUTHOR.ill)} />
+      <div>
+        <h1>{AUTHOR.name}</h1>
+        <p class="au__role">{AUTHOR.role}</p>
+        <div class="au__bio">{AUTHOR.bio.map((t) => <p>{t}</p>)}</div>
+        <div class="au__links">{AUTHOR.links.map(([n, h]) => <a class="bl-tag" href={h} target="_blank" rel="me noopener">{n}</a>)}</div>
+      </div>
+    </div>
+    <section class="au__posts"><h2>Проекты в блоге</h2><div class="au__grid">{posts.map((p) => <BlogCard post={p} k="n" />)}</div></section>
+  </article></div>
+  <script>import '../../../scripts/blog-ill';</script>
+</Base>

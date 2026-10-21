@@ -1,6 +1,6 @@
 ---
 // Пост внутри окна (#post). На клиенте подменяется целиком из HTML страницы /blog/slug.
-import { BLOG, POSTS, bySlug, ruDate, type Post } from '../data/blog';
+import { AUTHOR, BLOG, POSTS, authorUrl, bySlug, ruDate, type Post } from '../data/blog';
 import { ill } from '../data/blog-ill';
 import BlogCard from './BlogCard.astro';
 interface Props { post: Post }
@@ -14,7 +14,7 @@ const rel = [...post.rel, ...POSTS.map((p) => p.slug).filter((s) => s !== post.s
     <a class="bp__x" href="/blog" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></a>
   </header>
   <div class="bl-ill bp__cover" set:html={ill(post.cover ?? post.ill)} />
-  <p class="bp__meta">{post.author ?? 'Reconcept'} · <time datetime={post.date}>{ruDate(post.date)}</time> · {Math.max(1, Math.round(words / 180))} мин</p>
+  <p class="bp__meta">{post.author === AUTHOR.name ? <a href={authorUrl}>{post.author}</a> : post.author ?? 'Reconcept'} · <time datetime={post.date}>{ruDate(post.date)}</time> · {Math.max(1, Math.round(words / 180))} мин</p>
   <div class="bp__body">
     {post.body.map((b) => 'h' in b ? <h2>{b.h}</h2>
       : 'lead' in b ? <p class="bp__lead" set:html={b.lead} />
