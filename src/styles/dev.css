@@ -315,3 +315,10 @@ h2.bd{margin:0}
 .fq details p:has(+p){padding-bottom:9px}
 .ld+.fg{margin-top:45px}
 .sco .plim{margin-top:0}
+
+/* общее для лендингов (из figs.css) */
+.two-l--c{flex-direction:column;align-items:stretch;justify-content:space-between;gap:30px}
+.two-l--c .chat{min-height:300px}
+[data-chat]:not([data-on="1"]) :is(.msg,.ln){animation-play-state:paused}
+.ph{align-self:flex-start;width:100%;max-width:420px}
+.ph img{position:relative;z-index:10;display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;object-position:50% 30%;background:#fff;border:1px solid #fff}

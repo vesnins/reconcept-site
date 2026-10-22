@@ -1,0 +1,365 @@
+---
+// Лендинг разработки ПО на заказ (ПО1): визуал /services/development (Dev.astro, dev.css), свои блоки — styles/sw.css, scripts/sw.ts
+import Dev from '../../layouts/Dev.astro';
+import { SITE } from '../../lib/site';
+import { authorUrl } from '../../data/blog';
+import '../../styles/sw.css';
+
+const url = `${SITE.url}/services/custom-software`;
+const title = 'Разработка программного обеспечения на заказ — Reconcept';
+const description = 'Разработка ПО на заказ: CRM и учёт под ваш процесс, личные кабинеты, интеграции с 1С. От 120 000 ₽, код и данные ваши, сервер в России.';
+const TG = SITE.telegram, MX = SITE.max, WA = SITE.whatsapp, ML = `mailto:${SITE.email}`;
+
+const ar = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4"/></svg>';
+const arL = '<svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4"/></svg>';
+const bubble = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>';
+
+const kpi = [['с 2010', 'пишу код для бизнеса'], ['100 %', 'кода, доступов и данных — ваши'], ['РФ', 'серверы и данные в России']];
+const pains = [
+  ['Excel на десятки вкладок', 'Данные расходятся, формулы ломаются, а как устроен файл, знает один сотрудник.'],
+  ['Ручной перенос данных', 'Заявки из почты в таблицу, из таблицы в 1С. Каждый перенос — время и ошибки.'],
+  ['Коробка не подходит', 'Вы платите за лишние функции и подстраиваете процесс под программу.'],
+  ['Подписки растут', 'Облачный сервис берёт плату за каждого сотрудника, поднимает цены или уходит из России.'],
+];
+const dirs = [
+  ['CRM', 'CRM под ваш процесс', 'Воронка, задачи и история клиента ровно так, как работает ваш отдел продаж.'],
+  ['Учёт', 'Учёт и склад', 'Остатки, заказы, производство и закупки в одной системе вместо таблиц.'],
+  ['Кабинет', 'Личный кабинет клиента', 'Заказы, статусы, документы и оплата. Клиенты не звонят менеджеру с вопросом «где мой заказ».'],
+  ['Портал', 'Внутренний портал', 'Заявки между отделами, согласования, база знаний и задачи сотрудников.'],
+  ['Интеграции', 'Интеграции с 1С и банками', '1С, банк, маркетплейсы, сайт и мессенджеры обмениваются данными сами.'],
+  ['Отчёты', 'Отчёты и дашборды', 'Выручка, заявки и загрузка команды на одном экране, без сводных таблиц.'],
+  ['Документы', 'Автоматизация документов', 'Договоры, счета и акты собираются из данных системы за секунды.'],
+  ['ИИ', 'ИИ в процессах', 'Разбор входящих заявок, писем и документов с помощью YandexGPT и GigaChat.'],
+];
+// Сравнение: [критерий, [балл 1–3, текст] × 3]
+const cmpH = ['Коробочная программа', 'Облачный сервис', 'Своя система'];
+const cmp = [
+  ['Под ваш процесс', [[1, 'Вы подстраиваетесь под программу'], [2, 'В рамках настроек и тарифа'], [3, 'Делается под процесс']]],
+  ['Деньги через 3 года', [[2, 'Лицензии, обновления, доработки'], [1, 'Плата за каждого сотрудника растёт с командой'], [2, 'Разработка один раз, дальше поддержка по часам']]],
+  ['Где данные', [[2, 'У вас, если сервер свой'], [1, 'На серверах сервиса'], [3, 'На вашем сервере в России']]],
+  ['Интеграции', [[1, 'Через платных интеграторов'], [2, 'Только готовые'], [3, 'С любой системой, где есть API или выгрузка']]],
+  ['Если поставщик уйдёт', [[1, 'Без обновлений и поддержки'], [1, 'Доступ отключат'], [3, 'Код ваш, продолжит любой разработчик']]],
+  ['Запуск', [[2, 'Недели на внедрение'], [3, 'Сразу'], [1, 'От 4 недель']]],
+] as [string, [number, string][]][];
+const plans = [
+  ['Личный кабинет клиента', '120 000', '4 недели'],
+  ['CRM или учёт под ваш процесс', '200 000', '6 недель'],
+  ['Внутренний портал', '300 000', '2 месяца'],
+];
+const steps = [
+  ['Разбор', 'Изучаю процесс: кто что делает, где теряются время и данные. Решаем, что автоматизировать первым.'],
+  ['Прототип', 'Рисую экраны системы. Вы видите и проверяете её до начала разработки.'],
+  ['Смета и договор', 'Фиксированная цена и срок каждого этапа. Договор с ИП, NDA по запросу.'],
+  ['Разработка', 'Рабочая версия каждую неделю. Вы пробуете систему по ходу, а не в конце.'],
+  ['Запуск', 'Переношу данные из Excel и старых программ, обучаю сотрудников.'],
+  ['Развитие', 'Дорабатываю систему по мере роста бизнеса. Поддержка — 3000 ₽/ч.'],
+];
+const stack = ['TypeScript', 'Node.js', 'Python', 'PostgreSQL', 'Redis', 'React', 'Next.js', 'Astro', 'Docker', 'REST и GraphQL API', 'Обмен с 1С', 'Telegram и MAX API', 'YandexGPT', 'GigaChat', 'Яндекс Облако', 'Selectel', 'Timeweb Cloud'];
+// Схема интеграций: десктоп — узлы по эллипсу вокруг центра, мобильный — две колонки
+const igT = ['1С', 'Банк', 'Сайт', 'Telegram · MAX', 'Маркетплейсы', 'Почта', 'Таблицы', 'ИИ'];
+const igs = [
+  { m: 'd', w: 480, h: 400, n: igT.map((t, i) => { const a = (i * 45 - 90) * Math.PI / 180; return { t, x: Math.round(240 + 170 * Math.cos(a)), y: Math.round(200 + 150 * Math.sin(a)) }; }) },
+  { m: 'm', w: 360, h: 520, n: igT.map((t, i) => ({ t, x: i < 4 ? 68 : 292, y: [60, 170, 350, 460][i % 4] })) },
+];
+const trust = [
+  ['Договор', 'С ИП, оплата по счёту, по этапам. NDA по запросу.'],
+  ['Код и права ваши', 'Репозиторий, сервер и доступы оформлены на вас.'],
+  ['Документация', 'Описание системы и инструкции: продолжить сможет любой разработчик.'],
+  ['Демо каждую неделю', 'Вы видите прогресс и правите курс по ходу работы.'],
+  ['Данные в России', 'Серверы в РФ, обработка персональных данных по 152-ФЗ.'],
+  ['Гарантия', 'Месяц после запуска исправляю ошибки в моём коде в рамках гарантии.'],
+];
+const about = [['Опыт', 'Пишу код с 2010 года'], ['Делаю', 'Системы для бизнеса, боты, приложения, сайты, интеграции'], ['Связь', 'Telegram, MAX, WhatsApp, почта'], ['Договор', 'С ИП, оплата по этапам']];
+const faq = [
+  ['Сколько стоит разработка программы на заказ?', 'Личный кабинет — от 120 000 ₽, CRM или учёт под ваш процесс — от 200 000 ₽, внутренний портал — от 300 000 ₽. Точную цену называю после разбора задачи и фиксирую в договоре.'],
+  ['Сколько времени занимает разработка?', 'Первая рабочая версия — от 4 недель. Дальше систему можно развивать этапами.'],
+  ['Нужно ли техническое задание?', 'Нет. Разберу процесс и составлю его сам, а прототип экранов покажу до начала разработки.'],
+  ['Можно начать с малого?', 'Да. Первым делом автоматизируем то, что отнимает больше всего времени. Остальное — следующими этапами, когда первая часть окупится.'],
+  ['Кому принадлежит код?', 'Вам: код, репозиторий, сервер и все доступы.'],
+  ['Что будет, если вы перестанете работать над проектом?', 'Код хранится в вашем репозитории и описан в документации. Продолжить сможет любой разработчик.'],
+  ['Где хранятся данные?', 'На сервере в России: вашем или арендованном у российского провайдера. Обработка персональных данных — по 152-ФЗ.'],
+  ['Можно связать систему с 1С?', 'Да. Обмен с 1С, банками, маркетплейсами, сайтом и мессенджерами — одна из самых частых задач.'],
+  ['Перенесёте данные из Excel и старой программы?', 'Да, перенос данных входит в запуск.'],
+  ['Как проходит оплата?', 'По договору с ИП, по этапам. Каждый этап — с фиксированной ценой и сроком.'],
+];
+const contacts = [['Telegram', TG, 'click_telegram'], ['MAX', MX, 'click_max'], ['WhatsApp', WA, 'click_whatsapp'], [SITE.email, ML, 'click_email']];
+// Разделители сеток .fg: [класс, позиция] и точки пересечений [класс, x, y]
+const d4 = [['v md', '50%'], ['h md', '50%'], ['v xl', '25%'], ['v xl', '50%'], ['v xl', '75%']], o4 = [['md', '50%', '50%']];
+const d8 = [['v md', '50%'], ['h md', '25%'], ['h md', '50%'], ['h md', '75%'], ['v xl', '25%'], ['v xl', '50%'], ['v xl', '75%'], ['h xl', '50%']];
+const o8 = [['md', '50%', '25%'], ['md', '50%', '50%'], ['md', '50%', '75%'], ['xl', '25%', '50%'], ['xl', '50%', '50%'], ['xl', '75%', '50%']];
+const d6 = [['v md', '50%'], ['h md', '33.333%'], ['h md', '66.667%'], ['v xl', '33.333%'], ['v xl', '66.667%'], ['h xl', '50%']];
+const o6 = [['md', '50%', '33.333%'], ['md', '50%', '66.667%'], ['xl', '33.333%', '50%'], ['xl', '66.667%', '50%']];
+const grid = (d: string[][], o: string[][]) => d.map(([c, p]) => `<i class="fd ${c}" style="--p:${p}" aria-hidden="true"></i>`).join('') + o.map(([c, x, y]) => `<i class="fo ${c}" style="--x:${x};--y:${y}" aria-hidden="true"></i>`).join('');
+// Ячейки таблицы на первом экране: [ширина заглушки %], 0 — пусто, -1 — ошибка
+const xl = [[70, 40, 55, 30], [50, 0, 80, 45], [85, 35, -1, 60], [40, 70, 25, 0], [65, 50, 45, 75], [30, 0, 60, 40]];
+
+const ld = [
+  { '@context': 'https://schema.org', '@type': 'ProfessionalService', name: 'Reconcept — разработка ПО', url, description,
+    areaServed: { '@type': 'Country', name: 'Россия' }, sameAs: [TG], email: SITE.email,
+    founder: { '@type': 'Person', name: 'Сергей Веснин', url: `${SITE.url}${authorUrl}` },
+    priceRange: 'от 120 000 ₽', serviceType: ['Разработка программного обеспечения на заказ', 'Разработка CRM', 'Разработка личного кабинета', 'Автоматизация бизнеса', 'Интеграция с 1С'],
+    makesOffer: plans.map(([n, p]) => ({ '@type': 'Offer', name: n, priceSpecification: { '@type': 'PriceSpecification', minPrice: p.replace(/\s/g, ''), priceCurrency: 'RUB' } })) },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [['Главная', '/'], ['Услуги', '/services'], ['Разработка ПО', '/services/custom-software']].map(([name, u], i) => ({ '@type': 'ListItem', position: i + 1, name, item: `${SITE.url}${u}` })) },
+  { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
+];
+---
+<Dev title={title} description={description} og="custom-software">
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(ld)} />
+  <div class="page"><div class="ctn">
+    <header class="hd">
+      <div class="hd-bar">
+        <a class="hd-logo" href="/" aria-label="Reconcept — главная">RE</a>
+        <span class="hd-mid">Reconcept <span class="hd-sub">· программы</span></span>
+        <div class="hd-cta">
+          <a class="hd-a hd-a--2" href="#price"><Fragment set:html={ar} />Цены</a>
+          <a class="hd-a" href={TG} target="_blank" rel="noopener" data-goal="click_telegram"><Fragment set:html={ar} />Написать</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="mn">
+      <section class="hero">
+        <i class="cn cn--tl" aria-hidden="true"></i>
+        <div class="hero-l"><div>
+          <p class="lb hero-k"><Fragment set:html={ar} />Разработка ПО на заказ</p>
+          <h1 class="h1">Разработка программ для бизнеса <em>вместо Excel и ручной работы</em></h1>
+          <p class="hero-sub">CRM, учёт, личные кабинеты и внутренние системы под ваш процесс. Пишу код сам, код и данные — ваши, сервер в России.</p>
+          <div class="btns">
+            <a class="btn" href={TG} target="_blank" rel="noopener" data-goal="click_telegram">Написать в Telegram <Fragment set:html={ar} /></a>
+            <a class="btn btn--o" href={MX} target="_blank" rel="noopener" data-goal="click_max">Написать в MAX <Fragment set:html={ar} /></a>
+          </div>
+          <p class="hero-m">Или на почту <a class="il" href={ML} data-goal="click_email">{SITE.email}</a></p>
+        </div></div>
+        <div class="hero-r" aria-hidden="true">
+          <i class="cn cn--br"></i>
+          <div class="win" data-io="live">
+            <div class="win-h"><span></span><span></span><span></span><b class="wt"><span class="wt1">таблица_финал_v7.xlsx</span><span class="wt2">ваша система</span></b></div>
+            <div class="win-b">
+              <div class="xl">
+                <i class="xh"></i>{['A', 'B', 'C', 'D'].map((c) => <i class="xh">{c}</i>)}
+                {xl.map((r, y) => <><i class="xh">{y + 1}</i>{r.map((w, x) => <i class="xc" style={`--i:${y * 4 + x}`}>{w > 0 ? <b style={`width:${w}%`}></b> : w < 0 ? '#ЗНАЧ!' : null}</i>)}</>)}
+                <i class="sel"></i>
+              </div>
+              <div class="app">
+                <div class="side"><i class="sl"></i><i></i><i></i><i></i><i></i></div>
+                <div class="main">
+                  <div class="tiles">{[['Заявки', 128], ['В работе', 34], ['Часов в мес.', 42]].map(([t, n], i) => <div class="tile" style={`--j:${i}`}>{t}<b style={`--to:${n}`}></b></div>)}</div>
+                  <div class="chart"><svg viewBox="0 0 200 80" preserveAspectRatio="none"><path pathLength="1" d="M0 70 L25 62 L50 66 L75 48 L100 52 L125 34 L150 38 L175 20 L200 12"/></svg></div>
+                </div>
+                <div class="toast">Счёт отправлен ✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="two">
+        <i class="dv" aria-hidden="true"></i>
+        <div class="two-l two-l--c" data-chat>
+          <i class="cn cn--tl cn--d" aria-hidden="true"></i>
+          <div class="chat" aria-hidden="true"><div class="chat-d"></div><div class="chat-in"><div class="msgs">
+            {[['Процесс', 'w72', '', [100, 80, 67]], ['Прототип', 'w64', ' msg--r', [100, 83]], ['Система ✓', 'w56', '', [100, 67]]].map(([h, w, r, ls], i) => (
+              <div class={`msg ${w}${r}`} style={`--d:${i * .45}s`}>
+                <div class="sh-o"></div><div class="sh-i"></div>
+                <div class="bub"><div class="bub-h mo"><Fragment set:html={ar} />{h}</div>
+                  <div class="lines">{(ls as number[]).map((l, j) => <span class="ln" style={`width:${l}%;--d:${i * .45 + .3 + j * .08}s`}></span>)}</div>
+                </div>
+              </div>
+            ))}
+          </div></div></div>
+          <p class="mxl">Сначала разберу процесс, <em>потом пишу код</em>.</p>
+        </div>
+        <div class="two-r">
+          <i class="cn cn--br cn--d" aria-hidden="true"></i>
+          <ul class="kpi">{kpi.map(([v, t]) => <li><strong>{v}</strong><span>{t}</span></li>)}</ul>
+        </div>
+      </section>
+
+      <section class="sec" id="pain">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Автоматизация бизнеса</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Где бизнес <em>теряет время</em></h2>
+          <p class="lede ld">Два часа в день на перенос данных — это 42 часа в месяц, больше пяти рабочих дней одного сотрудника.</p>
+          <div class="fg">
+            <Fragment set:html={grid(d4, o4)} />
+            {pains.map(([t, d], i) => <div class="fc"><p class="lb lb--f"><Fragment set:html={ar} />Потеря {String(i + 1).padStart(2, '0')}</p><h3 class="ct">{t}</h3><p class="cd">{d}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="build">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Что разрабатываю</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w fhw">Системы, которые <em>работают вместо сотрудников</em></h2>
+          <div class="fg">
+            <Fragment set:html={grid(d8, o8)} />
+            {dirs.map(([l, t, d]) => <div class="fc"><p class="lb lb--f"><Fragment set:html={ar} />{l}</p><h3 class="ct">{t}</h3><p class="cd">{d}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="stack">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Интеграции</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Всё связано <em>в одну систему</em></h2>
+          <div class="ig-w">
+            {igs.map(({ m, w, h, n }) => { const cx = w / 2, cy = h / 2; return <svg class={`igr igr--${m}`} viewBox={`0 0 ${w} ${h}`} role={m === 'd' ? 'img' : undefined} aria-hidden={m === 'm' ? 'true' : undefined} aria-label={m === 'd' ? 'Схема: система обменивается данными с 1С, банком, сайтом, мессенджерами, маркетплейсами, почтой, таблицами и ИИ' : undefined}>
+              {n.map((o) => <path class="igl" d={`M${o.x} ${o.y}L${cx} ${cy}`} />)}
+              {n.map((o, i) => <circle class="igp" r="3"><animateMotion dur="2.4s" begin={`-${i * .3}s`} repeatCount="indefinite" path={i % 2 ? `M${cx} ${cy}L${o.x} ${o.y}` : `M${o.x} ${o.y}L${cx} ${cy}`} /></circle>)}
+              {n.map((o) => <g class="ign"><rect x={o.x - 58} y={o.y - 15} width="116" height="30" /><text x={o.x} y={o.y + 4}>{o.t}</text></g>)}
+              <g class="igc"><rect x={cx - 75} y={cy - 28} width="150" height="56" /><text x={cx} y={cy + 5}>Ваша система</text></g>
+            </svg>; })}
+            <div class="ig-t">
+              <p class="lede">Данные вводятся один раз и сами попадают туда, где нужны: заказ с сайта — в систему и 1С, оплата из банка — в карточку клиента, уведомление — сотруднику в Telegram или MAX.</p>
+              <p class="lb ig-lb"><Fragment set:html={ar} />Стек подбираю под задачу</p>
+              <ul class="chips">{stack.map((s) => <li>{s}</li>)}</ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="compare">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Сравнение</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Коробка, облако <em>или своя система</em></h2>
+          <div class="cmp" role="table" aria-label="Сравнение коробочной программы, облачного сервиса и своей системы" data-io="once">
+            <div class="cr cr--h" role="row"><span class="cx" role="columnheader"></span>{cmpH.map((h, i) => <span class:list={['cx', { 'cx--me': i === 2 }]} role="columnheader">{h}</span>)}</div>
+            {cmp.map(([k, v], r) => <div class="cr" role="row">
+              <span class="cx cx--k" role="rowheader">{k}</span>
+              {v.map(([n, t], i) => <span class:list={['cx', { 'cx--me': i === 2 }]} role="cell" data-h={cmpH[i]} style={`--r:${r}`}>
+                <span class="mt" role="img" aria-label={`${n} из 3`}>{[1, 2, 3].map((k2) => <i class:list={{ on: k2 <= n }} style={`--k:${k2}`}></i>)}</span>{t}
+              </span>)}
+            </div>)}
+          </div>
+          <p class="lede ld">Если готовая программа закрывает почти все ваши задачи, посоветую её. Своя система выгодна, когда процесс не помещается в коробку или подписка растёт вместе с командой.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="calc">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Окупаемость</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Посчитайте, <em>за сколько окупится система</em></h2>
+          <form class="calc" id="cf">
+            <div class="cl-in">
+              {[['p', 'Сотрудники на рутине', 1, 30, 1, 3, ''], ['h', 'Часов в день на рутину', .5, 6, .5, 2, ' ч'], ['r', 'Стоимость часа сотрудника', 300, 3000, 100, 600, ' ₽'], ['c', 'Стоимость системы', 120000, 1000000, 10000, 200000, ' ₽']].map(([id, l, mn, mx, st, v, u]) =>
+                <label class="rg"><span class="rg-h">{l}<output data-u={u}></output></span><input type="range" name={id as string} min={mn} max={mx} step={st} value={v}></label>)}
+              <p class="cl-n">Считаю, что система снимает 70 % рутины, в месяце 21 рабочий день. Расчёт ориентировочный.</p>
+            </div>
+            <div class="cl-out" aria-live="polite">
+              <p class="lb">Рутина стоит в месяц</p>
+              <p class="cl-big" id="c-loss">—</p>
+              <p class="lb">Система окупится за</p>
+              <p class="cl-big" id="c-pb">—</p>
+              <svg class="cl-ch" id="c-ch" viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true"></svg>
+              <p class="cl-lg"><span><i class="lg-f"></i>до окупаемости</span><span><i class="lg-o"></i>после</span><span><i class="lg-l"></i>стоимость системы</span></p>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="sec pr" id="price">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Стоимость разработки ПО</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Цена <em>известна до начала работы</em></h2>
+          <p class="lede">Фиксированная стоимость каждого этапа. Указаны минимальные цены.</p>
+          <div class="pgr">
+            {plans.map(([n, p, s]) => <div class="pl">
+              <h3>{n}</h3><p class="pp">{p} ₽</p><p class="pper">минимум за проект</p>
+              <ul class="plim"><li><strong>{s}</strong><span>срок от</span></li></ul>
+            </div>)}
+            <div class="pacc">
+              <a class="cta cta--p" href={TG} target="_blank" rel="noopener" data-goal="click_telegram">Написать <Fragment set:html={arL} /></a>
+              <p>Доработки и поддержка — 3000 ₽/ч. Оплата по этапам.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="steps">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Этапы работы</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w fhw">От разбора <em>до работающей системы</em></h2>
+          <div class="tl fhw" data-io="once" aria-hidden="true"><span class="tl-f"></span>{steps.map((_, i) => <i style={`--x:${i * 20}%;--i:${i}`}><b>{String(i + 1).padStart(2, '0')}</b></i>)}</div>
+          <div class="fg fg--3">
+            <Fragment set:html={grid(d6, o6)} />
+            {steps.map(([t, d], i) => <div class="fc"><p class="lb lb--f"><Fragment set:html={ar} />Этап {String(i + 1).padStart(2, '0')}</p><h3 class="ct">{t}</h3><p class="cd">{d}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="trust">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Гарантии</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w fhw">Система <em>не зависит от меня</em></h2>
+          <div class="fg fg--3">
+            <Fragment set:html={grid(d6, o6)} />
+            {trust.map(([t, d], i) => <div class="fc"><p class="lb lb--f"><Fragment set:html={ar} />{String(i + 1).padStart(2, '0')}</p><h3 class="ct">{t}</h3><p class="cd">{d}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section class="two" id="about">
+        <i class="dv" aria-hidden="true"></i>
+        <div class="two-l two-l--c">
+          <i class="cn cn--tl cn--d" aria-hidden="true"></i>
+          <span class="bd bd--w bd-abs">Разработчик</span>
+          <div class="card ph"><span class="card-s" aria-hidden="true"></span><img src="/ps/author.svg" alt="Сергей Веснин" width="2000" height="2000" loading="lazy" decoding="async"></div>
+          <h2 class="mxl">Кто пишет <em>вашу систему</em></h2>
+        </div>
+        <div class="two-r">
+          <i class="cn cn--br cn--d" aria-hidden="true"></i>
+          <div class="two-rx">
+            <p><a class="il" href={authorUrl}>Сергей Веснин</a>. Пишу код с 2010 года: сайты, Telegram-боты, мобильные приложения и системы для бизнеса.</p>
+            <p>Разработка — часть веб-студии Reconcept. Среди клиентов — Эластур, E-Timing, KPMI. Без менеджеров: задачу вы обсуждаете с тем, кто пишет код.</p>
+          </div>
+          <dl class="kv kv--a">{about.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+        </div>
+      </section>
+
+      <section class="sec" id="faq">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Вопросы</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Частые вопросы</h2>
+          <div class="fq">
+            {faq.map(([q, a]) => <details><summary>{q}<svg class="fqi" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0 7h14M7 0v14"/></svg></summary><p>{a}</p></details>)}
+          </div>
+        </div>
+      </section>
+
+      <a class="big" href={TG} target="_blank" rel="noopener" data-goal="click_telegram" aria-label="Написать в Telegram">
+        <svg viewBox="0 0 1000 132" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="stp" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="2" fill="currentColor"/></pattern></defs><text x="0" y="128" textLength="1000" lengthAdjust="spacingAndGlyphs" font-size="174" font-weight="900" fill="url(#stp)">НАПИШИТЕ</text></svg>
+      </a>
+
+      <section class="sec ctc" id="contacts">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Контакты</span>
+        <div class="cc">
+          <div class="ci">
+            <h2 class="h2">Расскажите, что отнимает время, — <em>предложу решение</em></h2>
+            <p>Опишите процесс в двух словах. Отвечу сам, обычно в течение дня: что автоматизировать, сколько стоит и за сколько окупится.</p>
+          </div>
+          <div class="card"><span class="card-s" aria-hidden="true"></span><div class="cf">
+            {contacts.map(([t, h, g], i) => <a class:list={['cta', { 'cta--p': !i }]} href={h} target={i < 3 ? '_blank' : undefined} rel={i < 3 ? 'noopener' : undefined} data-goal={g}>{t} <Fragment set:html={arL} /></a>)}
+          </div></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bt"><div class="bt-in">
+      <a class="bt-t" href="/">©Reconcept 2010–{new Date().getFullYear()}</a>
+      <span class="bt-logo" aria-hidden="true">RE</span>
+      <a class="bt-t bt-r" href="/privacy">Политика конфиденциальности</a>
+    </div></footer>
+  </div></div>
+  <a slot="after" class="lch" href={TG} target="_blank" rel="noopener" data-goal="click_telegram" aria-label="Написать в Telegram"><Fragment set:html={bubble} /></a>
+  <script src="../../scripts/sw.ts"></script>
+</Dev>

@@ -4,7 +4,7 @@ import { servicePages } from '../data/service-pages';
 import { POSTS, authorUrl } from '../data/blog';
 
 // Карта сайта. Новую страницу вне кейсов/услуг — добавить в список ниже.
-const paths = ['/', '/services', '/contacts', '/services/paid-search', '/services/development',
+const paths = ['/', '/services', '/contacts', '/services/paid-search', '/services/development', '/services/custom-software',
   ...Object.keys(servicePages).map((s) => `/services/${s}`),
   ...Object.keys(casePages).map((s) => `/portfolio/${s}`), '/blog', authorUrl];
 const blog = POSTS.map((p) => `<url><loc>${SITE.url}/blog/${p.slug}</loc><lastmod>${p.upd ?? p.date}</lastmod></url>`);
