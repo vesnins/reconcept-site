@@ -1,29 +1,322 @@
 ---
-import Direct from '../../layouts/Direct.astro';
-import raw from '../../fragments/direct.html?raw';
+// Лендинг Яндекс Директа (Я5): визуал /services/development (layouts/Dev.astro, styles/dev.css), тексты — прежний direct.reconcept.ru
+import Dev from '../../layouts/Dev.astro';
 import { SITE } from '../../lib/site';
+import { authorUrl } from '../../data/blog';
+import '../../styles/figs.css';
+// Рисунки прежнего лендинга: src/fragments/ps/*.html
+const F = Object.fromEntries(Object.entries(import.meta.glob('../../fragments/ps/*.html', { query: '?raw', import: 'default', eager: true })).map(([k, v]) => [k.replace(/^.*\/|\.html$/g, ''), v as string]));
 
 const url = `${SITE.url}/services/paid-search`;
+const title = 'Настройка и ведение Яндекс Директа под ключ — Reconcept';
 const description = 'Настройка и ведение Яндекс Директа: семантика, объявления, лендинг и цели в Метрике. Считаю результат по живым заявкам. Бесплатный разбор рекламы или прогноз заявок.';
-const landing = raw.replaceAll('{TG}', SITE.telegram).replaceAll('{MAX}', SITE.max).replaceAll('{MAIL}', SITE.email);
+const TG = SITE.telegram, MX = SITE.max, WA = SITE.whatsapp, ML = `mailto:${SITE.email}`;
 
-const ld = {
-  '@context': 'https://schema.org',
-  '@type': 'ProfessionalService',
-  name: 'DIRECT.RECONCEPT',
-  url,
-  description,
-  areaServed: { '@type': 'Country', name: 'Россия' },
-  sameAs: [SITE.telegram],
-  makesOffer: [
-    { '@type': 'Offer', name: 'Настройка и ведение Яндекс Директа, один регион', price: '15000', priceCurrency: 'RUB' },
-    { '@type': 'Offer', name: 'Настройка и ведение Яндекс Директа, вся Россия', price: '30000', priceCurrency: 'RUB' },
-  ],
-};
+const ar = '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4"/></svg>';
+const arL = '<svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M1 6h10M7 2l4 4-4 4"/></svg>';
+const bubble = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>';
+
+const kpi = [['7 лет', 'опыта в Яндекс Директе'], ['5 лет', 'работают со мной двое клиентов'], ['2200%', 'окупаемость рекламы, кухни, сентябрь 2026']];
+const leaks = [
+  ['Боты', 'Автостратегия учится на ложных конверсиях и приводит ещё больше ботов. У клиента с кухнями до перенастройки шли только боты и ноль продаж.'],
+  ['Нецелевые запросы', 'Без минус-слов объявление видят те, кто ищет «бесплатно», «своими руками» или работу.'],
+  ['Мусорные площадки', 'Мобильные игры и приложения в РСЯ съедают бюджет случайными кликами.'],
+  ['Слабый лендинг', 'Человек пришёл по запросу, а на странице нет ответа. Клик оплачен, заявки нет.'],
+];
+const scope = [
+  ['Перед запуском', [['Разбор спроса и конкурентов в аукционе', 'До договора'], ['Семантика и минус-слова', 'Месяц 1'], ['Объявления для Поиска и РСЯ', 'Месяц 1'], ['Цели в Метрике на каждую кнопку и форму', 'Месяц 1'], ['Проверка посадочной и защита форм от ботов', 'Месяц 1']]],
+  ['Ведение', [['Чистка запросов и площадок', 'Постоянно'], ['Тесты объявлений и стратегий', 'Постоянно'], ['Отчёт: расход, заявки, цена заявки', 'Каждый месяц']]],
+  ['Сайт', [['Лендинг или сайт с нуля', 'Оплачивается отдельно']]],
+] as [string, [string, string][]][];
+// [метка, заголовок, [подпись, крупно, мелко][]]
+const cases = [
+  ['Москва', 'Кухни на заказ', [['Было', '', 'Только боты, ноль продаж'], ['Стало', '600 000 ₽', 'Живые заявки и продажа в первый месяц'], ['Сентябрь', '×22', 'окупаемость. Расход 26 923 ₽, ДРР 4,5 %']]],
+  ['Вся Россия · B2B', 'Спортивные покрытия', [['Было', '', '1 форма или звонок в месяц (июль–август)'], ['Стало', '14 в месяц', 'сентябрь–октябрь 2026'], ['Расход', '', '20 381 ₽, на Поиске 540 ₽ за обращение']]],
+  ['Саратов · 5 лет', 'Чистка канализации, вентиляции и резервуаров', [['Обращения', '3 → 12 в месяц', 'в 4 раза больше'], ['Бюджет', '', '3 058 → 11 442 ₽, в 3,7 раза больше'], ['Цена', '', 'около 950 ₽ за обращение']]],
+  ['Вся Россия · B2B · 5 лет', 'Спортоборудование и фотофиниши', [['За год', '32 → 48', 'заявок с форм, +50 % на сжимающемся рынке'], ['В месяц', '', 'около 9 обращений по 1 700 ₽']]],
+] as [string, string, [string, string, string][]][];
+const plans = [
+  ['Один регион', '15 000', 'Настройка и ведение рекламы в вашем городе или области.', '30 000'],
+  ['Москва и Санкт-Петербург', '20–30 000', 'Точную цену называю после разбора: зависит от ниши и конкуренции.', '60 000'],
+  ['Вся Россия', '30 000', 'Реклама по всей стране, в том числе для B2B и производства.', '60 000'],
+];
+const terms = [['Первый месяц', 'Настройка и запуск. Со 2-го ведение.'], ['Договор', 'Помесячная оплата мне.'], ['Бюджет рекламы', 'Пополняется отдельно на Яндексе.'], ['Сайт', 'Разработка оплачивается отдельно.']];
+const steps = [
+  ['Заявка', 'Вы оставляете Telegram или MAX.'],
+  ['Созвон', 'Обсуждаем продукт, регион, сезонность и рекламу, которая уже идёт.'],
+  ['Разбор или прогноз', 'Бесплатно. Если реклама идёт, смотрю кабинет и посадочную. Если запуск с нуля, считаю спрос и прогноз заявок.'],
+  ['Предложение', 'Что делаю, сроки, стоимость и какой результат ждать. Честно предупрежу, если реклама не окупится.'],
+  ['Запуск', 'Первый месяц: настройка, запуск и сбор данных, на которых учатся стратегии.'],
+  ['Ведение', 'Оптимизирую рекламу по живым заявкам и раз в месяц отчитываюсь цифрами.'],
+];
+const magnet = [
+  ['Реклама уже идёт', 'Аудит рекламы', ['Где утекает бюджет и что чинить первым', 'Правильно ли считаются заявки: цели в Метрике, звонки', 'Что мешает посетителям оставить заявку на посадочной', 'Чем берут клиентов конкуренты по аукциону']],
+  ['Запускаетесь с нуля', 'Прогноз заявок', ['Сколько людей ищут ваш товар или услугу в месяц', 'Цена клика в вашей нише и регионе', 'Сколько заявок и по какой цене в трёх сценариях']],
+] as [string, string, string[]][];
+const about = [['Опыт', '7 лет в Яндекс Директе'], ['Делаю', 'Рекламу, лендинги и сайты, цели в Метрике'], ['Ниши', 'Кухни на заказ, B2B и производство, услуги в регионах'], ['Связь', 'Telegram, MAX, WhatsApp'], ['Договор', 'Помесячно']];
+const lk = (h: string, t: string, g: string) => `<a class="il" href="${h}"${h.startsWith('http') ? ' target="_blank" rel="noopener"' : ''} data-goal="${g}">${t}</a>`;
+const faq = [
+  ['Чем вы лучше бесплатной настройки от Яндекса?', ['Яндекс помогает запустить кампанию и не отвечает за результат. Дальше реклама остаётся на вас.', 'Я веду рекламу постоянно, отвечаю и за сайт, и считаю результат по живым заявкам, а не по конверсиям в кабинете.']],
+  ['Вы гарантируете результат?', ['Рост заявок на конкретный процент заранее не гарантирует никто: цену клика определяет аукцион.', 'Я гарантирую то, что контролирую: настройку, постоянную работу с кампаниями и честный отчёт. Если посчитаю, что реклама в вашей нише не окупится, скажу об этом до подписания договора.']],
+  ['Сколько нужно денег на рекламу?', ['Бюджет Директа оплачивается отдельно от моей работы.', 'В регионе — от 30 000 ₽ в месяц. В Москве, Санкт-Петербурге и по всей России — от 60 000 ₽. В конкурентных нишах, возможно и больше.']],
+  ['На какой срок договор?', ['Я не требую минимального срока договора.', 'Но первый месяц уходит на настройку и запуск, дальше идёт ведение. Разумно заложить минимум 3 месяца.']],
+  ['Когда пойдут заявки?', ['Первый месяц — это настройка, запуск и сбор данных: стратегии Директа учатся на ваших целях.', 'Понятная цена заявки складывается, когда накопится статистика. Сроки зависят от ниши и бюджета, их назову после разбора.']],
+  ['У меня нет сайта. Что делать?', ['Сделаю лендинг или сайт вместе с рекламой. Тогда весь путь от запроса до заявки будет в одних руках.', 'Разработка сайта оплачивается отдельно.']],
+  ['Что делать, если заявки оставляют боты?', ['Отключаю площадки и запросы, откуда они приходят, ставлю защиту на формы и перестаю учить стратегии на ложных конверсиях.', 'У клиента с кухнями после такой перенастройки пошли живые заявки и продажи.']],
+  ['Как вы считаете заявки?', ['Расход беру из Директа, заявки из Метрики или реальные заявки с сайта.', 'Конверсии Директа и клики по мессенджеру или телефону заявками не считаю.']],
+  ['Как с вами связаться?', [`Напишите мне в ${lk(TG, 'Telegram', 'click_telegram')}, ${lk(MX, 'MAX', 'click_max')} или ${lk(WA, 'WhatsApp', 'click_whatsapp')}.`, `Или на почту ${lk(ML, SITE.email, 'click_email')}. Общаетесь вы со мной напрямую.`]],
+] as [string, string[]][];
+
+const contacts = [['Telegram', TG, 'click_telegram'], ['MAX', MX, 'click_max'], ['WhatsApp', WA, 'click_whatsapp'], [SITE.email, ML, 'click_email']];
+// Разделители сеток .fg: [класс, позиция] и точки пересечений [класс, x, y]
+const lDiv = [['v md', '50%'], ['h md', '50%'], ['v xl', '25%'], ['v xl', '50%'], ['v xl', '75%']], lDot = [['md', '50%', '50%']];
+const sDiv = [['v md', '50%'], ['h md', '33.333%'], ['h md', '66.667%'], ['v xl', '33.333%'], ['v xl', '66.667%'], ['h xl', '50%']];
+const sDot = [['md', '50%', '33.333%'], ['md', '50%', '66.667%'], ['xl', '33.333%', '50%'], ['xl', '66.667%', '50%']];
+const strip = (s: string) => s.replace(/<[^>]+>/g, '');
+
+const ld = [
+  { '@context': 'https://schema.org', '@type': 'ProfessionalService', name: 'Reconcept — Яндекс Директ', url, description,
+    areaServed: { '@type': 'Country', name: 'Россия' }, sameAs: [TG], email: SITE.email,
+    founder: { '@type': 'Person', name: 'Сергей Веснин', url: `${SITE.url}${authorUrl}` },
+    priceRange: 'от 15 000 ₽ в месяц', serviceType: ['Настройка Яндекс Директа', 'Ведение Яндекс Директа', 'Аудит рекламы'],
+    makesOffer: [['один регион', '15000'], ['Москва и Санкт-Петербург', '20000'], ['вся Россия', '30000']].map(([n, p]) => ({ '@type': 'Offer', name: `Настройка и ведение Яндекс Директа, ${n}`, priceSpecification: { '@type': 'UnitPriceSpecification', minPrice: p, priceCurrency: 'RUB', unitText: 'месяц' } })) },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [['Главная', '/'], ['Услуги', '/services'], ['Яндекс Директ', '/services/paid-search']].map(([name, u], i) => ({ '@type': 'ListItem', position: i + 1, name, item: `${SITE.url}${u}` })) },
+  { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: strip(a.join(' ')) } })) },
+];
 ---
-<Direct title="Настройка и ведение Яндекс Директа под ключ — DIRECT.RECONCEPT" description={description}>
+<Dev title={title} description={description} og="paid-search">
+  <Fragment set:html={F.defs} />
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(ld)} />
-  <div class="rule mono" aria-hidden="true">Продвинуть сайт в Яндексе</div>
-  <Fragment set:html={landing} />
-  <script src="../../scripts/direct.ts"></script>
-</Direct>
+  <div class="page"><div class="ctn">
+    <header class="hd">
+      <div class="hd-bar">
+        <a class="hd-logo" href="/" aria-label="Reconcept — главная">RE</a>
+        <span class="hd-mid">Reconcept <span class="hd-sub">· реклама</span></span>
+        <div class="hd-cta">
+          <a class="hd-a hd-a--2" href="#cases"><Fragment set:html={ar} />Кейсы</a>
+          <a class="hd-a" href={TG} target="_blank" rel="noopener" data-goal="click_telegram"><Fragment set:html={ar} />Написать</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="mn">
+      <section class="hero">
+        <i class="cn cn--tl" aria-hidden="true"></i>
+        <div class="hero-l"><div>
+          <p class="lb hero-k"><Fragment set:html={ar} />Яндекс Директ под ключ</p>
+          <h1 class="h1">Настраиваю, запускаю и веду <em>Яндекс Директ</em></h1>
+          <p class="hero-sub">Собираю семантику, пишу объявления, делаю лендинг и ставлю цели в Метрике. Результат считаю по живым заявкам, а не по кликам и конверсиям Директа.</p>
+          <p class="hero-m">Бесплатный разбор рекламы или прогноз заявок</p>
+          <div class="btns">
+            <a class="btn" href={TG} target="_blank" rel="noopener" data-goal="click_telegram">Написать в Telegram <Fragment set:html={ar} /></a>
+            <a class="btn btn--o" href={MX} target="_blank" rel="noopener" data-goal="click_max">Написать в MAX <Fragment set:html={ar} /></a>
+          </div>
+          <p class="hero-m">Или на почту <a class="il" href={ML} data-goal="click_email">{SITE.email}</a></p>
+        </div></div>
+        <div class="hero-r">
+          <i class="cn cn--br"></i>
+          <Fragment set:html={F.f1} />
+        </div>
+      </section>
+
+      <section class="two">
+        <i class="dv" aria-hidden="true"></i>
+        <div class="two-l two-l--c" data-chat>
+          <i class="cn cn--tl cn--d" aria-hidden="true"></i>
+          <div class="chat" aria-hidden="true"><div class="chat-d"></div><div class="chat-in"><div class="msgs">
+            {[['Ниша и регион', 'w72', '', [100, 80, 67]], ['Спрос и цена клика', 'w64', ' msg--r', [100, 83]], ['Окупаемость ✓', 'w56', '', [100, 67]]].map(([h, w, r, ls], i) => (
+              <div class={`msg ${w}${r}`} style={`--d:${i * .45}s`}>
+                <div class="sh-o"></div><div class="sh-i"></div>
+                <div class="bub"><div class="bub-h mo"><Fragment set:html={ar} />{h}</div>
+                  <div class="lines">{(ls as number[]).map((l, j) => <span class="ln" style={`width:${l}%;--d:${i * .45 + .3 + j * .08}s`}></span>)}</div>
+                </div>
+              </div>
+            ))}
+          </div></div></div>
+          <p class="mxl">Сначала посчитаю, <em>окупится ли реклама</em>.</p>
+        </div>
+        <div class="two-r">
+          <i class="cn cn--br cn--d" aria-hidden="true"></i>
+          <ul class="kpi">{kpi.map(([v, t]) => <li><strong>{v}</strong><span>{t}</span></li>)}</ul>
+        </div>
+      </section>
+
+      <section class="sec" id="leaks">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Прибыльная реклама в Яндексе</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Куда утекает бюджет <em>в Яндекс Директ</em></h2>
+          <p class="lede ld">Реклама в Директе редко проваливается целиком. Обычно бюджет уходит в несколько конкретных мест, и каждое можно закрыть.</p>
+          <div class="ps-f"><Fragment set:html={F.f2} /></div>
+          <div class="fg">
+            {lDiv.map(([c, p]) => <i class={`fd ${c}`} style={`--p:${p}`} aria-hidden="true"></i>)}
+            {lDot.map(([c, x, y]) => <i class={`fo ${c}`} style={`--x:${x};--y:${y}`} aria-hidden="true"></i>)}
+            {leaks.map(([t, d], i) => <div class="fc"><p class="lb lb--f"><Fragment set:html={ar} />Утечка {String(i + 1).padStart(2, '0')}</p><h3 class="ct">{t}</h3><p class="cd">{d}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section class="sec sco" id="scope">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Как работает реклама в Яндексе</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Что входит <em>в работу</em></h2>
+          <p class="lede ld">Когда рекламу ведёт один подрядчик, а сайт другой, каждый отвечает за свою половину. Заявки теряются на стыке.</p>
+          <p class="lede ld">Я делаю обе части и вижу всю цепочку: какой запрос привёл человека, что он увидел на странице и оставил ли заявку. Поэтому правлю не только ставки, но и то, что мешает человеку написать вам.</p>
+          <div class="pgr">
+            {scope.map(([n, items]) => <div class="pl"><h3>{n}</h3><ul class="plim">{items.map(([t, w]) => <li><strong>{t}</strong><span>{w}</span></li>)}</ul></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="cases">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Кейсы рекламы в Яндекс Директ</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Было <em>и стало</em></h2>
+          <div class="sg">
+            {cases.map(([m, t, rows], i) => <div class="card"><span class="card-s" aria-hidden="true"></span><div class="card-i">
+              <span class="lb"><Fragment set:html={ar} />{m}</span>
+              <Fragment set:html={F[`c${i + 1}`]} />
+              <span class="ic mo" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <h3 class="ct">{t}</h3>
+              <dl class="kv">{rows.map(([k, b, s]) => <div><dt>{k}</dt><dd>{b && <b>{b}</b>}{s}</dd></div>)}</dl>
+            </div></div>)}
+          </div>
+          <p class="lede ld">Как считаю: расход беру из Директа, заявки из Метрики (цели по рекламному трафику) или реальные заявки с сайта. Конверсии Директа и клики по мессенджеру или телефону заявками не считаю.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="count">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Заявки и клиенты из Яндекс Директ</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Что я считаю <em>качественной заявкой</em></h2>
+          <div class="cnt">
+            <Fragment set:html={F.f4} />
+            <div class="two-rx">
+              <p>Директ засчитывает много конверсий: клики по телефону, переходы в мессенджер, автоцели. Часть из них оставляют боты и случайные посетители.</p>
+              <p>Если учить стратегию на таких целях, алгоритм начнёт приводить ещё больше таких посетителей. Поэтому заявкой я считаю только заполненную форму с контактом или звонок.</p>
+              <p>В отчёте вы видите три цифры: сколько потрачено, сколько пришло заявок и сколько стоила одна заявка.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec pr" id="price">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Сколько стоит реклама в Яндексе</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Стоимость</h2>
+          <div class="pgr">
+            {plans.map(([n, p, d, b]) => <div class="pl">
+              <h3>{n}</h3><p class="pp">{p} ₽</p><p class="pper">в месяц</p><p class="pd">{d}</p>
+              <ul class="plim"><li><strong>от {b} ₽</strong><span>рекомендуемый бюджет Директа в месяц</span></li></ul>
+            </div>)}
+            <ul class="tm">{terms.map(([k, v]) => <li><strong>{k}</strong><span>{v}</span></li>)}</ul>
+            <div class="pacc">
+              <a class="cta cta--p" href="#magnet" data-goal="click_price">Узнать цену для моей ниши <Fragment set:html={arL} /></a>
+              <p>Разбор и прогноз — бесплатно, до договора.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="steps">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Этапы работы</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w fhw">От вашего обращения ко мне <em>до лидов с сайта</em></h2>
+          <div class="fhw"><Fragment set:html={F.f5} /></div>
+          <div class="fg fg--3">
+            {sDiv.map(([c, p]) => <i class={`fd ${c}`} style={`--p:${p}`} aria-hidden="true"></i>)}
+            {sDot.map(([c, x, y]) => <i class={`fo ${c}`} style={`--x:${x};--y:${y}`} aria-hidden="true"></i>)}
+            {steps.map(([t, d], i) => <div class="fc"><p class="lb lb--f"><Fragment set:html={ar} />Этап {String(i + 1).padStart(2, '0')}</p><h3 class="ct">{t}</h3><p class="cd">{d}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="magnet">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">С чего начать</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Бесплатно, <em>до договора</em></h2>
+          <div class="sg sg--2">
+            {magnet.map(([m, t, li], i) => <div class="card"><span class="card-s" aria-hidden="true"></span><div class="card-i">
+              <span class="lb"><Fragment set:html={ar} />{m}</span>
+              <span class="ic mo" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <h3 class="ct">{t}</h3>
+              <ul class="ul">{li.map((x) => <li>{x}</li>)}</ul>
+              <Fragment set:html={F[i ? 'fcs' : 'au']} />
+            </div></div>)}
+          </div>
+          <div class="row">
+            <p class="lb">Напишите, что вам нужно</p>
+            {contacts.map(([t, h, g], i) => <a class:list={['cta', { 'cta--p': !i, 'cta--m': i === 3 }]} href={h} target={i < 3 ? '_blank' : undefined} rel={i < 3 ? 'noopener' : undefined} data-goal={g}>{t} <Fragment set:html={arL} /></a>)}
+            <p>Скажу, если посчитаю, что реклама не окупится.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="two" id="about">
+        <i class="dv" aria-hidden="true"></i>
+        <div class="two-l two-l--c">
+          <i class="cn cn--tl cn--d" aria-hidden="true"></i>
+          <span class="bd bd--w bd-abs">Ваш директолог</span>
+          <div class="card ph"><span class="card-s" aria-hidden="true"></span><img src="/ps/author.svg" alt="Сергей Веснин" width="2000" height="2000" loading="lazy" decoding="async"></div>
+          <h2 class="mxl">Кто будет <em>вести рекламу</em></h2>
+        </div>
+        <div class="two-r">
+          <i class="cn cn--br cn--d" aria-hidden="true"></i>
+          <div class="two-rx">
+            <p><a class="il" href={authorUrl}>Сергей Веснин</a>. Я веду рекламные кампании в Яндексе семь лет. Два клиента работают со мной уже пять лет.</p>
+            <p>Делаю и рекламу, и сайты, поэтому отвечаю за весь путь от запроса до заявки. Вы общаетесь со мной напрямую.</p>
+          </div>
+          <dl class="kv kv--a">{about.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+        </div>
+      </section>
+
+      <section class="sec" id="faq">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i><i class="cn cn--br cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Ответы на все вопросы</span>
+        <div class="sec-c">
+          <h2 class="h2 h2w">Частые вопросы</h2>
+          <div class="fq">
+            {faq.map(([q, a]) => <details><summary>{q}<svg class="fqi" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0 7h14M7 0v14"/></svg></summary>{a.map((p) => <p set:html={p} />)}</details>)}
+          </div>
+        </div>
+      </section>
+
+      <a class="big" href={TG} target="_blank" rel="noopener" data-goal="click_telegram" aria-label="Написать в Telegram">
+        <svg viewBox="0 0 1000 132" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="stp" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="2" fill="currentColor"/></pattern></defs><text x="0" y="128" textLength="1000" lengthAdjust="spacingAndGlyphs" font-size="174" font-weight="900" fill="url(#stp)">НАПИШИТЕ</text></svg>
+      </a>
+
+      <section class="sec ctc" id="cta">
+        <i class="cn cn--tl cn--d" aria-hidden="true"></i>
+        <span class="bd bd--w bd-abs">Что даёт реклама в Яндексе</span>
+        <div class="cc">
+          <div class="ci">
+            <h2 class="h2">Сколько заявок можно получать <em>в вашей нише?</em></h2>
+            <p>Если реклама уже идёт, покажу, где утекает бюджет. Если запускаетесь с нуля, посчитаю прогноз. Бесплатно и ни к чему не обязывает.</p>
+          </div>
+          <div class="card"><span class="card-s" aria-hidden="true"></span><div class="cf">
+            {contacts.map(([t, h, g], i) => <a class:list={['cta', { 'cta--p': !i }]} href={h} target={i < 3 ? '_blank' : undefined} rel={i < 3 ? 'noopener' : undefined} data-goal={g}>{t} <Fragment set:html={arL} /></a>)}
+          </div></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bt"><div class="bt-in">
+      <a class="bt-t" href="/">©Reconcept 2010–{new Date().getFullYear()}</a>
+      <span class="bt-logo" aria-hidden="true">RE</span>
+      <a class="bt-t bt-r" href="/privacy">Политика конфиденциальности</a>
+    </div></footer>
+  </div></div>
+  <a slot="after" class="lch" href={TG} target="_blank" rel="noopener" data-goal="click_telegram" aria-label="Написать в Telegram"><Fragment set:html={bubble} /></a>
+  <script src="../../scripts/figs.ts"></script>
+  <script>
+    // Анимация чата «Сначала посчитаю» стартует при появлении на экране
+    const c = document.querySelector<HTMLElement>('[data-chat]');
+    if (c) new IntersectionObserver(([e], o) => { if (e.isIntersecting) { c.dataset.on = '1'; o.disconnect(); } }, { threshold: .3 }).observe(c);
+  </script>
+</Dev>

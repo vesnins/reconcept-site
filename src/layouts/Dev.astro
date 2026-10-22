@@ -1,5 +1,5 @@
 ---
-// Лендинг /services/development (К15): визуал по мотивам asktori.ai в инверсии (синий фон, белые линии); общие cookie/Метрика сайта (scripts/site.ts)
+// Лендинги /services/development (К15) и /services/paid-search (Я5): визуал по мотивам asktori.ai в инверсии (синий фон, белые линии); общие cookie/Метрика сайта (scripts/site.ts)
 import '@fontsource-variable/inter';
 import '@fontsource-variable/inter/wght-italic.css';
 import '@fontsource-variable/jetbrains-mono';
@@ -7,8 +7,8 @@ import '@fontsource-variable/jetbrains-mono/wght-italic.css';
 import '../styles/dev.css';
 import { SITE, INDEX } from '../lib/site';
 
-interface Props { title: string; description: string; noindex?: boolean }
-const { title, description, noindex } = Astro.props;
+interface Props { title: string; description: string; og: string; noindex?: boolean }
+const { title, description, og, noindex } = Astro.props;
 const canonical = new URL(Astro.url.pathname.replace(/(index)?\.html$/, ''), SITE.url).href;
 ---
 <!doctype html>
@@ -30,7 +30,7 @@ const canonical = new URL(Astro.url.pathname.replace(/(index)?\.html$/, ''), SIT
   <meta property="og:title" content={title}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonical}>
-  <meta property="og:image" content={`${SITE.url}/og/development.png`}>
+  <meta property="og:image" content={`${SITE.url}/og/${og}.png`}>
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content={title}>
