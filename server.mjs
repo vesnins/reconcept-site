@@ -19,7 +19,7 @@ const TYPES = {
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://mc.yandex.ru https://yastatic.net",
+  "script-src 'self' 'unsafe-inline' https://mc.yandex.ru https://mc.yandex.com https://yastatic.net",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://mc.yandex.ru https://mc.yandex.com",
   "font-src 'self'",
