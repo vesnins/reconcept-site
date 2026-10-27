@@ -121,6 +121,7 @@ export function chat(req, res, url) {
     if (!authed(req)) return json(res, 401, {});
     if (p === 'bridge/pull' && req.method === 'GET') return pull(req, res, url);
     if (p === 'bridge/push' && req.method === 'POST') return push(req, res);
+    if (p === 'bridge/history' && req.method === 'GET') return json(res, 200, q.bySid.all(url.searchParams.get('sid') || '', 0));
   }
   json(res, 404, {});
 }
