@@ -46,6 +46,13 @@ document.addEventListener('click', (e) => {
 
 export {};
 
+// Онлайн-чат: грузится отдельным файлом. До PUBLIC_CHAT=1 — только для проверки: открыть сайт с ?chat=1 (выключить: ?chat=0)
+try {
+  const c = new URLSearchParams(location.search).get('chat');
+  if (c) c === '1' ? localStorage.setItem('chat-test', '1') : localStorage.removeItem('chat-test');
+  if (import.meta.env.PUBLIC_CHAT === '1' || localStorage.getItem('chat-test') === '1') import('./chat');
+} catch {}
+
 // Kinescope: плеер грузится только у видимых видео
 const vids = document.querySelectorAll<HTMLIFrameElement>('iframe[data-src]');
 if (vids.length) {
