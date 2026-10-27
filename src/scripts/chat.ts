@@ -11,6 +11,11 @@ const CHIPS = p.startsWith('/services/paid-search') ? ['Сколько стои�
 const HI = 'Здравствуйте! Я Сергей, обычно отвечаю в течение минуты-двух. Чем могу помочь?';
 const NOTE = 'Ответ придёт сюда. Можно закрыть страницу — переписка сохранится в этом окне на 30 дней.';
 const svg = (d: string, n = 24) => `<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="${d}"/></svg>`;
+// Робот-секретарь: линии как в иллюстрациях блога, точечная сетка
+const BOT = '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width=".6" aria-hidden="true"><defs><pattern id="cw-g" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="1" height="1" fill="currentColor" stroke="none" opacity=".25"/></pattern></defs>'
+  + '<circle cx="20" cy="20" r="19.7" fill="url(#cw-g)"/><path d="M20 8.5V12M9.5 17v5M30.5 17v5M9.5 19.5H11M29 19.5h1.5M16.5 22.5h7M18.8 21.5v2M21.2 21.5v2M17 26v2h6v-2M6.6 34c1.5-4 6-6 13.4-6s11.9 2 13.4 6"/>'
+  + '<circle cx="20" cy="7" r="1.5"/><rect x="11" y="12" width="18" height="14" stroke-width="1"/><circle cx="16" cy="17.5" r="2" stroke-width="1"/><circle cx="24" cy="17.5" r="2" stroke-width="1"/></svg>';
+const NAME = ['Сергей', 'Сергей', 'Робот-секретарь'];
 const BUBBLE = 'M4 5h16v11H9l-5 4z', X = 'M6 6l12 12M18 6 6 18';
 
 // Состояние: sid, последняя активность, последний прочитанный ответ. Через 30 дней тишины — заново.
@@ -31,7 +36,7 @@ document.querySelector('.lch')?.remove(); // старая кнопка-Telegram 
 const root = document.createElement('div');
 root.className = 'cw' + (getComputedStyle(document.documentElement).getPropertyValue('--b').trim() ? ' cw--dev' : '');
 root.innerHTML = `<div class="cw-tip" hidden><button type="button" class="cw-tt">Есть вопрос? Отвечу здесь</button><button type="button" class="cw-x" aria-label="Закрыть">${svg(X, 20)}</button></div>`
-  + `<section class="cw-box" role="dialog" aria-label="Чат с Сергеем" hidden><header class="cw-h"><img src="/chat/sergey.webp" width="40" height="40" alt=""><b>Сергей</b><button type="button" class="cw-x" aria-label="Закрыть чат">${svg(X)}</button></header>`
+  + `<section class="cw-box" role="dialog" aria-label="Чат с Сергеем" hidden><header class="cw-h"><span class="cw-av"><img src="/chat/sergey.webp" width="40" height="40" alt="">${BOT}</span><b>Сергей</b><button type="button" class="cw-x" aria-label="Закрыть чат">${svg(X)}</button></header>`
   + `<div class="cw-l" aria-live="polite"></div><form class="cw-f"><textarea rows="1" maxlength="1000" placeholder="Напишите сообщение" aria-label="Сообщение"></textarea><button type="submit" aria-label="Отправить">${svg('M5 12h14M13 6l6 6-6 6', 20)}</button></form></section>`
   + `<button type="button" class="cw-b" aria-label="Открыть чат" aria-expanded="false">${svg(BUBBLE)}${svg(X)}<i hidden></i></button>`;
 document.body.append(root);
@@ -46,14 +51,27 @@ function add(t: string, d: number, i?: number) {
   el.className = d === 9 ? 'cw-n' : `cw-m cw-m${d}`;
   el.textContent = t;
   if (i) msgs.set(i, el);
-  list.append(el); list.scrollTop = list.scrollHeight;
+  list.insertBefore(el, ty); list.scrollTop = list.scrollHeight;
   return el;
 }
+// Кто отвечает (1 Сергей, 2 Робот-секретарь): аватар и имя в шапке, «…пишет»
+const ty = document.createElement('p');
+ty.className = 'cw-ty'; ty.hidden = true; ty.setAttribute('aria-hidden', 'true');
+let tyT = 0;
+function who(d: number) { root.classList.toggle('cw--ai', d === 2); $('.cw-h b').textContent = NAME[d]; }
+function typing(d: number, ms: number) {
+  clearTimeout(tyT); ty.hidden = !ms;
+  if (!ms) return;
+  who(d); ty.innerHTML = `${NAME[d]} пишет<i>.</i><i>.</i><i>.</i>`;
+  list.scrollTop = list.scrollHeight;
+  tyT = window.setTimeout(() => (ty.hidden = true), ms);
+}
+list.append(ty);
 add(HI, 1);
 let chips: HTMLElement | null = document.createElement('div');
 chips.className = 'cw-c';
 CHIPS.forEach((c) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = c; b.onclick = () => post(c); chips!.append(b); });
-list.append(chips);
+list.insertBefore(chips, ty);
 const noChips = () => { chips?.remove(); chips = null; };
 
 // Непрочитанные: счётчик на кнопке и мигание заголовка вкладки
@@ -71,6 +89,7 @@ let es: EventSource | null = null, last = 0;
 function connect() {
   if (es || !s.sid || document.hidden) return;
   es = new EventSource(`${API}stream?sid=${s.sid}&after=${last}`);
+  es.addEventListener('typing', onType);
   es.onmessage = (e) => {
     const m: M = JSON.parse(e.data);
     last = Math.max(last, m.i);
@@ -80,11 +99,13 @@ function connect() {
       const el = pend.find((x) => x.textContent === m.t);
       if (el) { pend = pend.filter((x) => x !== el); el.classList.remove('cw-wait'); msgs.set(m.i, el); return; }
     }
+    if (m.d) { who(m.d); typing(m.d, 0); }
     add(m.t, m.d, m.i);
     if (m.d && m.i > (s.seen || 0)) reading() ? seenAll() : badgeSet(unread + 1);
     if (m.d) show();
   };
 }
+function onType(e: MessageEvent) { const { d, ms } = JSON.parse(e.data); typing(d, ms); }
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { es?.close(); es = null; } else { connect(); if (reading()) seenAll(); }
 });

@@ -15,13 +15,23 @@
 .cw-tip .cw-x{width:32px;height:32px;margin:4px 4px 0 0}
 .cw-box{width:360px;height:min(560px,calc(100dvh - 112px));display:flex;flex-direction:column}
 .cw-h{display:flex;align-items:center;gap:12px;padding:12px 10px 12px 16px;border-bottom:1px solid var(--ln)}
+.cw-av{flex:none;display:flex;width:40px;height:40px}
 .cw-h img{border-radius:50%;object-fit:cover}
+.cw-av svg,.cw--ai .cw-av img{display:none}
+.cw--ai .cw-av svg{display:block}
 .cw-h b{flex:1;font-weight:600}
 .cw-l{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:16px;display:flex;flex-direction:column;gap:8px}
 .cw-m{margin:0;max-width:85%;padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
 .cw-m0{align-self:flex-end;background:var(--fg);color:var(--cb)}
 .cw-m1,.cw-m2{align-self:flex-start;border:1px solid var(--ln)}
 .cw-wait{opacity:.6}
+.cw-ty{margin:0;align-self:flex-start;font-size:13px;opacity:.5}
+.cw-ty[hidden]{display:none}
+.cw-ty i{font-style:normal;animation:cw-d2 1.2s steps(1) infinite}
+.cw-ty i:first-child{animation:none}
+.cw-ty i:last-child{animation-name:cw-d3}
+@keyframes cw-d2{0%{opacity:0}33%{opacity:1}}
+@keyframes cw-d3{0%{opacity:0}66%{opacity:1}}
 .cw-n{margin:4px 0;font-size:12px;opacity:.7;text-align:center}
 .cw-c{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:4px 0 0 13px}
 .cw .cw-c button{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;text-align:left}
@@ -34,4 +44,4 @@
   .cw--open .cw-b{display:none}
   html.cw-lock,html.cw-lock body{overflow:hidden}
 }
-@media(prefers-reduced-motion:reduce){.cw-b{transition:none}}
+@media(prefers-reduced-motion:reduce){.cw-b{transition:none}.cw-ty i{animation:none}}

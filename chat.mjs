@@ -27,7 +27,7 @@ const limit = (k, n, ms) => {
   if (!h || h[1] < now) hits.set(k, h = [0, now + ms]);
   return ++h[0] <= n;
 };
-setInterval(() => { const now = Date.now(); for (const [k, h] of hits) if (h[1] < now) hits.delete(k); }, 6e5).unref();
+setInterval(() => { const now = Date.now(); for (const [k, h] of hits) if (h[1] < now) hits.delete(k); for (const [k, t] of typers) if (t[1] < now) typers.delete(k); }, 6e5).unref();
 
 const SID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const str = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
@@ -48,9 +48,17 @@ const conns = new Map(); // ip → число SSE
 let total = 0;
 const waiters = new Set();
 const ev = (m) => `id: ${m.i}\ndata: ${JSON.stringify(m)}\n\n`;
+// «…пишет»: в памяти, не в истории. sid → [d, до]
+const typers = new Map();
+const tev = (d, ms) => `event: typing\ndata: ${JSON.stringify({ d, ms })}\n\n`;
+function typeSet(sid, d, ms) {
+  ms ? typers.set(sid, [d, Date.now() + ms]) : typers.delete(sid);
+  for (const r of subs.get(sid) || []) r.write(tev(d, ms));
+}
 
 function insert(sid, d, t, meta) {
   const i = Number(q.add.run(sid, d, t, Date.now(), meta ? JSON.stringify(meta) : null).lastInsertRowid);
+  if (d && typers.has(sid)) typeSet(sid, typers.get(sid)[0], 0);
   for (const r of subs.get(sid) || []) r.write(ev({ i, d, t }));
   if (d === 0) for (const w of waiters) w();
   return i;
@@ -65,6 +73,8 @@ function stream(req, res, url) {
   res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no' });
   res.write('retry: 5000\n\n');
   for (const m of q.bySid.all(sid, after)) res.write(ev(m));
+  const ty = typers.get(sid);
+  if (ty && ty[1] > Date.now()) res.write(tev(ty[0], ty[1] - Date.now()));
   if (!subs.has(sid)) subs.set(sid, new Set());
   subs.get(sid).add(res); conns.set(ip, (conns.get(ip) || 0) + 1); total++;
   const ping = setInterval(() => res.write(': \n\n'), 25e3);
@@ -121,6 +131,11 @@ export function chat(req, res, url) {
     if (!authed(req)) return json(res, 401, {});
     if (p === 'bridge/pull' && req.method === 'GET') return pull(req, res, url);
     if (p === 'bridge/push' && req.method === 'POST') return push(req, res);
+    if (p === 'bridge/typing' && req.method === 'POST') return body(req).then((b) => {
+      const sid = str(b.sid, 36), ms = Math.min(Math.max(Number(b.ms) || 0, 0), 3e5);
+      if (!SID.test(sid)) return json(res, 400, {});
+      typeSet(sid, b.d === 2 ? 2 : 1, ms); json(res, 200, {});
+    }, () => json(res, 400, {}));
     if (p === 'bridge/history' && req.method === 'GET') return json(res, 200, q.bySid.all(url.searchParams.get('sid') || '', 0));
   }
   json(res, 404, {});
