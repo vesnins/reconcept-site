@@ -70,7 +70,7 @@ list.append(ty);
 add(HI, 1);
 let chips: HTMLElement | null = document.createElement('div');
 chips.className = 'cw-c';
-CHIPS.forEach((c) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = c; b.onclick = () => post(c); chips!.append(b); });
+CHIPS.forEach((c) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = c; b.onclick = () => post(c, 1); chips!.append(b); });
 list.insertBefore(chips, ty);
 const noChips = () => { chips?.remove(); chips = null; };
 
@@ -110,7 +110,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) { es?.close(); es = null; } else { connect(); if (reading()) seenAll(); }
 });
 
-async function post(t: string) {
+async function post(t: string, chip = 0) {
   t = t.trim(); if (!t) return;
   const first = !s.sid;
   s.sid ||= crypto.randomUUID(); s.at = Date.now(); save();
@@ -118,7 +118,7 @@ async function post(t: string) {
   const el = add(t, 0); el.classList.add('cw-wait'); pend.push(el);
   try {
     const r = await fetch(API + 'send', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sid: s.sid, text: t, page: p, ref: ss('chat-ref') || '', t: Date.now() - t0 }) });
+      body: JSON.stringify({ sid: s.sid, text: t, page: p, ref: ss('chat-ref') || '', chip, t: Date.now() - t0 }) });
     if (!r.ok) throw 0;
     const { id } = await r.json();
     if (pend.includes(el)) { pend = pend.filter((x) => x !== el); el.classList.remove('cw-wait'); msgs.set(id, el); }

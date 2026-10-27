@@ -97,6 +97,7 @@ async function send(req, res) {
   const fresh = !q.has.get(sid);
   if (!limit(`i${ip}`, 20, 6e5) || !limit(`s${sid}`, 30, 6e5) || !limit('all', 300, 6e5) || (fresh && !limit(`n${ip}`, 5, 36e5))) return json(res, 429, {});
   const meta = { page: str(b.page, 200) };
+  if (b.chip === 1) meta.chip = 1; // нажата подсказка
   if (fresh) Object.assign(meta, { ref: str(b.ref, 200), ua: str(req.headers['user-agent'], 200) });
   json(res, 200, { id: insert(sid, 0, text, meta) });
 }
