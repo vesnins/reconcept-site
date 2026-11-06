@@ -25,11 +25,17 @@ let idx = 0;
 const queue = () => STEPS.filter((s) => !s.when || s.when());
 const el = (tag: string, cls = '', html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; };
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+const ev = (k: string) => { fetch('/api/kp/ev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k }), keepalive: true }).catch(() => {}); };
+const seenSteps = new Set<string>();
+let started = false;
+ev('form');
+addEventListener('load', () => window.goal?.('kp_form'));
 let vid = '';
 try { vid = localStorage.getItem('kpv') || ''; if (!vid) localStorage.setItem('kpv', (vid = crypto.randomUUID())); } catch {}
 
 function render() {
   const q = queue(), s = q[idx];
+  if (!seenSteps.has(s.id)) { seenSteps.add(s.id); ev(`step:${s.id}`); }
   root.innerHTML = '';
   const w = el('div', 'rq-step'), bar = el('div', 'rq-bar', '<i></i>'), head = el('div', 'rq-head');
   (bar.firstChild as HTMLElement).style.width = `${Math.round((idx / q.length) * 100)}%`;
@@ -69,12 +75,14 @@ function render() {
   root.append(w);
 }
 function go() {
+  if (!started) { started = true; ev('start'); window.goal?.('kp_start'); }
   if (A.svc === 'soft') return soft();
   idx++;
   if (idx >= queue().length) return send();
   render();
 }
 function soft() {
+  ev('soft'); window.goal?.('kp_soft');
   root.innerHTML = '';
   root.append(el('h2', 'rq-q', 'Программы и боты считаю лично'), el('p', 'rq-hint', 'Задачи слишком разные для анкеты. Напишите в двух словах, что нужно — назову цену и срок.'),
     el('div', 'kpf__btns', '<a class="pill pill--fill" href="https://t.me/vesnin" target="_blank" rel="noopener" data-goal="click_telegram">обсудить лично<i aria-hidden="true"></i></a>'));

@@ -20,7 +20,7 @@ function login() {
 }
 async function list() {
   const rows: any[] = await api('list');
-  root.innerHTML = `<h1 class="kp__h1">КП</h1><table class="kp__tbl kpa__tbl"><thead><tr><td>№</td><td>Создано</td><td>Услуга</td><td>Цена</td><td>Статус</td><td>Визиты</td><td>Последний</td></tr></thead><tbody>${rows.map((r) => `<tr><td><a href="#${r.id}">${r.id}</a></td><td>${dt(r.ts)}</td><td>${label(SERVICES, r.svc)}</td><td>${r.price == null ? '—' : rub(r.price)}</td><td>${ST[r.st]}${r.st === 1 && r.until < Date.now() ? ', срок истёк' : ''}</td><td>${r.n}</td><td>${dt(r.lv)}</td></tr>`).join('')}</tbody></table>
+  root.innerHTML = `<h1 class="kp__h1">КП</h1><p class="kp__sub"><a href="#stats">Статистика</a></p><table class="kp__tbl kpa__tbl"><thead><tr><td>№</td><td>Создано</td><td>Услуга</td><td>Цена</td><td>Статус</td><td>Визиты</td><td>Последний</td></tr></thead><tbody>${rows.map((r) => `<tr><td><a href="#${r.id}">${r.id}</a></td><td>${dt(r.ts)}</td><td>${label(SERVICES, r.svc)}</td><td>${r.price == null ? '—' : rub(r.price)}</td><td>${ST[r.st]}${r.st === 1 && r.until < Date.now() ? ', срок истёк' : ''}</td><td>${r.n}</td><td>${dt(r.lv)}</td></tr>`).join('')}</tbody></table>
   <p><button class="rq-back" type="button" id="out">Выйти</button></p>`;
   root.querySelector('#out')!.addEventListener('click', async () => { await api('logout', {}); login(); });
 }
@@ -42,7 +42,7 @@ async function card(id: number, upd?: object) {
     ${a.wish ? `<label>Хотелка: название${flag(e.wish)}<input name="wishTitle" value="${esc(e.wish?.title)}"></label><label>Часы (пусто — «обсудим лично»)<input name="wishH" type="number" min="0" value="${e.wish?.ok ? e.wish.h : ''}"></label>` : ''}
     <button class="pill" type="submit">пересчитать</button></form>
     ${e.site?.text ? `<h2 class="kp__h2">Старый сайт: ${esc(e.site.src)}, ${e.site.total} адресов</h2><pre class="kpa__pre">${esc(e.site.text)}</pre>` : ''}` : ''}
-  <h2 class="kp__h2">Визиты</h2><table class="kp__tbl"><tbody>${k.visits.map((v: any, i: number) => `<tr><td>${i + 1}. ${dt(v.start)} – ${dt(v.last)}</td><td>${esc(v.dev)}${v.vid === k.vid ? ' · автор анкеты' : ''} · ${esc(v.ip)}</td></tr>`).join('') || '<tr><td>нет</td></tr>'}</tbody></table>
+  <h2 class="kp__h2">Визиты</h2><table class="kp__tbl"><tbody>${k.visits.map((v: any, i: number) => `<tr><td>${i + 1}. ${dt(v.start)} – ${dt(v.last)}</td><td>${esc(v.dev)}${v.vid === k.vid ? ' · автор анкеты' : ''} · ${esc(v.ip)}<br>${blocks(v)}</td></tr>`).join('') || '<tr><td>нет</td></tr>'}</tbody></table>
   ${k.fw.length ? `<h2 class="kp__h2">Превью ссылки</h2><table class="kp__tbl"><tbody>${k.fw.map((f: any) => `<tr><td>${dt(f.ts)}</td><td>${esc(f.ua)}</td></tr>`).join('')}</tbody></table>` : ''}
   <p class="kpa__act"><button class="pill" type="button" id="rv">${k.st === 2 ? 'вернуть ссылку' : 'отозвать ссылку'}</button></p>`;
   root.querySelector('#rv')!.addEventListener('click', async () => { await api('revoke', { id, on: k.st !== 2 }); card(id); });
@@ -55,6 +55,29 @@ async function card(id: number, upd?: object) {
     card(id, u);
   };
 }
-const route = () => { const id = Number(location.hash.slice(1)); (id ? card(id) : list()).catch(() => {}); };
+const BL: Record<string, string> = { price: 'Цена', smeta: 'Смета', struct: 'Структура', incl: 'Что входит', contact: 'Контакты' };
+const blocks = (v: any) => {
+  const b = JSON.parse(v.b || '{}');
+  return [Object.keys(BL).filter((k) => b[k]).map((k) => `${BL[k]} ${b[k]} с`).join(', '), v.lb && `вышел: ${BL[v.lb]}`, v.cp && `копировал ${v.cp}`, v.pr && `печать ${v.pr}`, v.cl && `нажал «связаться» ${v.cl}`].filter(Boolean).join(' · ');
+};
+const STEPS: [string, string][] = [['svc', 'Услуга'], ['type', 'Тип сайта'], ['reg', 'Регионы'], ['ind', 'Отрасль'], ['indText', 'Своя отрасль'], ['scale', 'Масштаб'], ['goods', 'Товары'], ['feat', 'Функции'], ['wish', 'Своя задача'], ['fill', 'Наполнение'], ['brand', 'Стиль'], ['url', 'Адрес сайта']];
+const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)} %` : '—');
+const tbl = (h: string, head: string[], rows: unknown[][]) => `<h2 class="kp__h2">${h}</h2><table class="kp__tbl kpa__tbl"><thead><tr>${head.map((x) => `<td>${x}</td>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((x) => `<td>${esc(x)}</td>`).join('')}</tr>`).join('') || '<tr><td>нет данных</td></tr>'}</tbody></table>`;
+async function stats(days: number) {
+  const s = await api(`stats?days=${days}`), e = s.ev;
+  const fun: [string, number][] = [['Открыли анкету', e.form || 0], ['Начали', e.start || 0], ['Создали КП', s.created], ['Вернулись к КП', s.ret], ['Нажали «связаться» в КП', s.contact]];
+  const g = (h: string, rows: any[]) => tbl(h, ['', 'КП', 'Вернулись', 'Связались', 'Средняя цена'], rows.map(([n, c, r, k, p]) => [n, c, `${r} (${pct(r, c)})`, `${k} (${pct(k, c)})`, rub(p)]));
+  root.innerHTML = `<p><a class="rq-back" href="#">← все КП</a></p><h1 class="kp__h1">Статистика</h1>
+  <p class="kp__sub">${[[7, '7 дней'], [30, '30 дней'], [90, '90 дней'], [0, 'всё время']].map(([d, t]) => d === days ? `<b>${t}</b>` : `<a href="#stats/${d}">${t}</a>`).join(' · ')}</p>
+  ${tbl('Воронка', ['', 'Число', 'От предыдущего'], fun.map(([n, v], i) => [n, v, i ? pct(v, fun[i - 1][1]) : '']))}
+  <p class="kp__note">Чат и «Согласовать» — после этапа 2. «Пересчитать» нажали: ${e.recalc || 0}. Ушли в «Программы и боты»: ${e.soft || 0}.</p>
+  ${tbl('Анкета: до какого вопроса дошли', ['Вопрос', 'Дошли', 'От открывших'], STEPS.filter(([k]) => e[`step:${k}`]).map(([k, n]) => [n, e[`step:${k}`], pct(e[`step:${k}`], e.form || 0)]))}
+  ${g('По услуге', s.type)}${g('По сумме', s.sum)}${g('По отрасли', s.ind)}${g('По источнику', s.ref)}
+  ${tbl(`Внимание в КП (визитов: ${s.nv})`, ['Блок', 'Секунд за визит', 'Вышли на блоке'], Object.keys(BL).map((k) => [BL[k], s.att[k], s.last[k] || 0]))}`;
+}
+const route = () => {
+  const h = location.hash.slice(1), id = Number(h);
+  (h.startsWith('stats') ? stats(Number(h.split('/')[1] ?? 30) || 0) : id ? card(id) : list()).catch(() => {});
+};
 addEventListener('hashchange', route);
 route();

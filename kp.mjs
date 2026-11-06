@@ -42,7 +42,10 @@ CREATE TABLE IF NOT EXISTS kp(id INTEGER PRIMARY KEY AUTOINCREMENT, t TEXT UNIQU
 CREATE TABLE IF NOT EXISTS v(id INTEGER PRIMARY KEY AUTOINCREMENT, kp INTEGER NOT NULL, vid TEXT NOT NULL, ip TEXT, ua TEXT, start INTEGER NOT NULL, last INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS v_kp ON v(kp, vid, id);
 CREATE TABLE IF NOT EXISTS fw(kp INTEGER NOT NULL, ua TEXT, ts INTEGER NOT NULL);
-CREATE TABLE IF NOT EXISTS job(id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, kp INTEGER, data TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0);`);
+CREATE TABLE IF NOT EXISTS job(id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, kp INTEGER, data TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS ev(d TEXT NOT NULL, k TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(d, k));`);
+// визит: b — секунды по блокам, lb — блок перед уходом, cp — копирования, pr — печать, cl — нажатия «связаться»
+for (const c of ['b TEXT', 'lb TEXT', 'cp INTEGER DEFAULT 0', 'pr INTEGER DEFAULT 0', 'cl INTEGER DEFAULT 0']) try { db.exec(`ALTER TABLE v ADD COLUMN ${c}`); } catch {}
 const q = {
   add: db.prepare('INSERT INTO kp(t,svc,a,ts,vid,ip,ua,ref) VALUES(?,?,?,?,?,?,?,?)'),
   byT: db.prepare('SELECT * FROM kp WHERE t=?'),
@@ -52,7 +55,13 @@ const q = {
   st: db.prepare('UPDATE kp SET st=? WHERE id=?'),
   stale: db.prepare('SELECT id FROM kp WHERE st=0 AND ts<?'),
   list: db.prepare(`SELECT id, t, svc, price, st, ts, until, (SELECT COUNT(*) FROM v WHERE kp=kp.id) n, (SELECT MAX(last) FROM v WHERE kp=kp.id) lv FROM kp ORDER BY id DESC LIMIT 500`),
-  visits: db.prepare('SELECT vid, ip, ua, start, last FROM v WHERE kp=? ORDER BY id'),
+  visits: db.prepare('SELECT vid, ip, ua, start, last, b, lb, cp, pr, cl FROM v WHERE kp=? ORDER BY id'),
+  vB: db.prepare('SELECT b FROM v WHERE id=?'),
+  vUpd: db.prepare('UPDATE v SET b=?, lb=COALESCE(?, lb), cp=cp+?, pr=pr+?, cl=cl+? WHERE id=?'),
+  evAdd: db.prepare('INSERT INTO ev VALUES(?,?,1) ON CONFLICT(d, k) DO UPDATE SET n=n+1'),
+  evSum: db.prepare('SELECT k, SUM(n) n FROM ev WHERE d>=? GROUP BY k'),
+  sKp: db.prepare('SELECT id, svc, a, price, ts, vid, ref FROM kp WHERE ts>=? AND st>0'),
+  sV: db.prepare('SELECT v.kp, v.vid, v.b, v.lb, v.cl, kp.vid cv FROM v JOIN kp ON kp.id=v.kp WHERE kp.ts>=? ORDER BY v.id'),
   lastV: db.prepare('SELECT id, last FROM v WHERE kp=? AND vid=? ORDER BY id DESC LIMIT 1'),
   prevV: db.prepare('SELECT last FROM v WHERE kp=? ORDER BY id DESC LIMIT 1'),
   nV: db.prepare('SELECT COUNT(*) n, SUM(vid=?) mine FROM v WHERE kp=?'),
@@ -130,6 +139,15 @@ function finish(id, renew) {
   }
   const c = calc(r.svc, a, e);
   q.done.run(JSON.stringify(e), JSON.stringify(c), c.total, r.until && !renew ? null : workUntil(Date.now()), id);
+  if (r.st === 0) signalNew(id);
+}
+const src = (ref) => { try { const u = new URL(ref); return u.hostname.replace(/^www\./, '') === 'reconcept.ru' ? u.pathname : u.hostname; } catch { return 'прямой заход'; } };
+const indOf = (a) => (a.ind === 'other' ? a.indText || 'Другое' : label(INDUSTRIES, a.ind));
+function signalNew(id) {
+  const r = q.byId.get(id), a = parse(r.a), c = parse(r.c);
+  const det = r.svc === 'site' ? [indOf(a), `${label(SCALE, a.scale)} чел.`, a.type === 'landing' ? '' : `${c.pages} стр.`, c.own ? 'свой код' : 'Tilda'] : [label(REGIONS, a.reg), indOf(a)];
+  signal([`🆕 КП №${r.id} · ${r.svc === 'site' ? label(TYPES, a.type) : 'Директ'} · ${rub(r.price)}`, det.filter(Boolean).join(' · '),
+    a.url ? `Сайт: ${a.url}` : '', `Устройство: ${device(r.ua)}`, `Откуда: ${src(r.ref)}`].filter(Boolean).join('\n'), r.id);
 }
 // Без ИИ: каждый раздел карты = 1 шаблон, остальное однотипное
 function guess(s) {
@@ -287,16 +305,16 @@ function render(r, now) {
     : [label(REGIONS, a.reg), label(INDUSTRIES, a.ind) === 'Другое' ? a.indText : label(INDUSTRIES, a.ind)];
   const h1 = r.svc === 'site' ? `${label(TYPES, a.type)} ${c.own ? 'на своём коде' : 'на Tilda'}` : 'Реклама в Яндекс Директе';
   const total = old
-    ? `<div class="kp__sum"><button class="pill pill--fill" type="button" data-recalc>пересчитать</button><span>Срок цены истёк ${day(r.until)}</span></div>`
-    : `<div class="kp__sum"><span class="kp__price">${rub(r.price)}${r.svc === 'direct' ? '<small> в месяц</small>' : ''}</span><span>Цена действует до ${day(r.until)}</span></div>`;
+    ? `<div class="kp__sum" data-b="price"><button class="pill pill--fill" type="button" data-recalc>пересчитать</button><span>Срок цены истёк ${day(r.until)}</span></div>`
+    : `<div class="kp__sum" data-b="price"><span class="kp__price">${rub(r.price)}${r.svc === 'direct' ? '<small> в месяц</small>' : ''}</span><span>Цена действует до ${day(r.until)}</span></div>`;
   const rows = c.lines.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${money(v)}</td></tr>`).join('');
-  const list = (h, items) => `<h2 class="kp__h2">${h}</h2><ul class="kp__ul">${items.join('')}</ul>`;
+  const list = (h, items, b) => `<div data-b="${b}"><h2 class="kp__h2">${h}</h2><ul class="kp__ul">${items.join('')}</ul></div>`;
   return `<p class="kp__meta">Коммерческое предложение №${r.id} · ${day(r.ts)}</p>
 <h1 class="kp__h1">${esc(h1)}</h1><p class="kp__sub">${sub.filter(Boolean).map(esc).join(' · ')}</p>${total}
-<h2 class="kp__h2">Смета</h2><table class="kp__tbl"><tbody>${rows}</tbody>${old ? '' : `<tfoot><tr><td>Итого${r.svc === 'direct' ? ' в месяц' : ''}</td><td>${rub(r.price)}</td></tr></tfoot>`}</table>
-${r.svc === 'direct' ? `<p class="kp__note">Рекламный бюджет Директа оплачивается отдельно: рекомендуем от ${rub(c.budget)} в месяц. Первый месяц — настройка и запуск, стоит столько же, сколько ведение.</p>${list('Что входит', KEEP_DIRECT.map(([t, w]) => `<li><span>${t}</span><span>${w}</span></li>`))}`
-  : `${c.struct ? list(`Структура сайта`, c.struct.map((s) => `<li>${s}</li>`).concat(c.pages > 20 ? [`<li>и ещё ${c.pages - 20} стр.</li>`] : [])) : ''}${list('Что входит', KEEP_SITE.map((s) => `<li>${s}</li>`))}`}
-<h2 class="kp__h2">Обсудить КП №${r.id}</h2><div class="kp__btns">${LINKS.map(([t, h, g]) => `<a class="pill" href="${h}" target="_blank" rel="noopener" data-goal="${g}">${t}</a>`).join('')}</div>
+<div data-b="smeta"><h2 class="kp__h2">Смета</h2><table class="kp__tbl"><tbody>${rows}</tbody>${old ? '' : `<tfoot><tr><td>Итого${r.svc === 'direct' ? ' в месяц' : ''}</td><td>${rub(r.price)}</td></tr></tfoot>`}</table></div>
+${r.svc === 'direct' ? `<p class="kp__note">Рекламный бюджет Директа оплачивается отдельно: рекомендуем от ${rub(c.budget)} в месяц. Первый месяц — настройка и запуск, стоит столько же, сколько ведение.</p>${list('Что входит', KEEP_DIRECT.map(([t, w]) => `<li><span>${t}</span><span>${w}</span></li>`), 'incl')}`
+  : `${c.struct ? list(`Структура сайта`, c.struct.map((s) => `<li>${s}</li>`).concat(c.pages > 20 ? [`<li>и ещё ${c.pages - 20} стр.</li>`] : []), 'struct') : ''}${list('Что входит', KEEP_SITE.map((s) => `<li>${s}</li>`), 'incl')}`}
+<div data-b="contact"><h2 class="kp__h2">Обсудить КП №${r.id}</h2><div class="kp__btns">${LINKS.map(([t, h, g]) => `<a class="pill" href="${h}" target="_blank" rel="noopener" data-goal="${g}">${t}</a>`).join('')}</div></div>
 <p class="kp__note">Не является офертой, итоговая цена после согласования договора.</p>`;
 }
 const PREVIEW = /TelegramBot|WhatsApp|vkShare|facebookexternalhit|Twitterbot|Slackbot|Discordbot|Viber|SkypeUriPreview|YandexBot|Googlebot/i;
@@ -322,9 +340,10 @@ async function seen(req, res) {
   if (!r || r.st !== 1 || !VID.test(vid) || !limit(`ks${ip}`, 60, 6e5)) return json(res, 200, {});
   if (admin(req)) return json(res, 200, { me: 1 }); // свои просмотры не считаем
   const now = Date.now(), lv = q.lastV.get(r.id, vid);
-  if (lv && now - lv.last < 18e5) { q.touch.run(now, lv.id); return json(res, 200, {}); }
+  if (lv && now - lv.last < 18e5) { q.touch.run(now, lv.id); act(lv.id, b); return json(res, 200, {}); }
+  if (b.end) return json(res, 200, {});
   const { n, mine } = q.nV.get(vid, r.id), prev = q.prevV.get(r.id), ua = str(req.headers['user-agent'], 300);
-  q.addV.run(r.id, vid, ip, ua, now, now);
+  act(Number(q.addV.run(r.id, vid, ip, ua, now, now).lastInsertRowid), b);
   if (!n && vid === r.vid) return json(res, 200, {}); // первый показ после анкеты
   const a = parse(r.a);
   signal([`👀 КП №${r.id} · ${r.svc === 'site' ? label(TYPES, a.type) : 'Директ'} · ${rub(r.price)}`,
@@ -333,12 +352,50 @@ async function seen(req, res) {
     r.until < now ? 'Срок цены истёк' : ''].filter(Boolean).join('\n'), r.id);
   json(res, 200, {});
 }
+const BLOCKS = ['price', 'smeta', 'struct', 'incl', 'contact'];
+function act(id, b) {
+  const s = parse(q.vB.get(id)?.b), d = b.b && typeof b.b === 'object' ? b.b : {}, n = (x, m) => Math.min(Math.max(Math.round(+x || 0), 0), m);
+  for (const k of BLOCKS) if (n(d[k], 600)) s[k] = (s[k] || 0) + n(d[k], 600);
+  q.vUpd.run(JSON.stringify(s), BLOCKS.includes(b.lb) ? b.lb : null, n(b.cp, 20), n(b.pr, 20), n(b.cl, 20), id);
+}
+// События анкеты по дням (Москва): form, start, soft, recalc, step:<вопрос>
+const dayMsk = (ts = Date.now()) => new Date(ts + 3 * 36e5).toISOString().slice(0, 10);
+const EV = /^(form|start|soft|step:(svc|type|reg|ind|indText|scale|goods|feat|wish|fill|brand|url))$/;
+async function ev(req, res) {
+  if (!sameOrigin(req)) return json(res, 403, {});
+  let b; try { b = await body(req); } catch { return json(res, 400, {}); }
+  const k = str(b.k, 30);
+  if (EV.test(k) && !admin(req) && limit(`ke${ipOf(req)}`, 100, 6e5)) q.evAdd.run(dayMsk(), k);
+  json(res, 200, {});
+}
+function stats(days) {
+  const from = days ? Date.now() - days * 864e5 : 0, ev = Object.fromEntries(q.evSum.all(days ? dayMsk(from) : '0').map((x) => [x.k, x.n]));
+  const by = new Map(q.sKp.all(from).map((k) => [k.id, { ...k, a: parse(k.a), n: 0, ret: 0, cl: 0 }]));
+  const att = {}, last = {}; let nv = 0;
+  for (const v of q.sV.all(from)) {
+    const k = by.get(v.kp); if (!k) continue;
+    if (++k.n > 1 || v.vid !== v.cv) k.ret = 1;
+    k.cl += v.cl || 0; nv++;
+    for (const [b, s] of Object.entries(parse(v.b))) att[b] = (att[b] || 0) + s;
+    if (v.lb) last[v.lb] = (last[v.lb] || 0) + 1;
+  }
+  const ks = [...by.values()];
+  const group = (f) => { const m = {}; for (const k of ks) { const x = (m[f(k)] ||= [0, 0, 0, 0]); x[0]++; x[1] += k.ret; x[2] += k.cl > 0; x[3] += k.price || 0; } return Object.entries(m).sort((a, b) => b[1][0] - a[1][0]).map(([g, x]) => [g, x[0], x[1], x[2], Math.round(x[3] / x[0])]); };
+  const sum = (p) => (p < 15e4 ? 'до 150 тыс.' : p < 3e5 ? '150–300 тыс.' : p < 6e5 ? '300–600 тыс.' : p < 1e6 ? '600 тыс. – 1 млн' : 'от 1 млн');
+  return {
+    ev, created: ks.length, ret: ks.filter((k) => k.ret).length, contact: ks.filter((k) => k.cl).length, nv,
+    att: Object.fromEntries(BLOCKS.map((b) => [b, nv ? Math.round((att[b] || 0) / nv) : 0])), last,
+    type: group((k) => (k.svc === 'site' ? label(TYPES, k.a.type) : 'Директ')), ind: group((k) => indOf(k.a)),
+    sum: group((k) => (k.svc === 'site' ? sum(k.price) : 'Директ')), ref: group((k) => src(k.ref)),
+  };
+}
 async function recalc(req, res) {
   if (!sameOrigin(req)) return json(res, 403, {});
   let b; try { b = await body(req); } catch { return json(res, 400, {}); }
   const r = q.byT.get(str(b.t, 40));
   if (!r || r.st !== 1 || r.until > Date.now() || !limit(`kr${ipOf(req)}`, 5, 36e5)) return json(res, 400, {});
   finish(r.id, true);
+  if (!admin(req)) q.evAdd.run(dayMsk(), 'recalc');
   if (!admin(req)) signal(`🔄 КП №${r.id}: клиент нажал «Пересчитать», новая цена ${rub(q.byId.get(r.id).price)}`, r.id);
   json(res, 200, {});
 }
@@ -366,6 +423,7 @@ async function adminApi(req, res, p) {
   if (!admin(req)) return json(res, 401, {});
   if (p === 'logout') { res.setHeader('Set-Cookie', 'kpa=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict'); return json(res, 200, {}); }
   if (p === 'list') return json(res, 200, q.list.all());
+  if (p === 'stats') return json(res, 200, stats(Number(new URL(req.url, 'http://x').searchParams.get('days')) || 0));
   let b = {};
   if (req.method === 'POST') { try { b = await body(req); } catch { return json(res, 400, {}); } }
   const id = Number(b.id || new URL(req.url, 'http://x').searchParams.get('id')) || 0, r = q.byId.get(id);
@@ -391,6 +449,7 @@ export function kp(req, res, url, ctx) {
   if (p === 'create' && req.method === 'POST') return create(req, res);
   if (p === 'status' && req.method === 'GET') { const r = q.byT.get(url.searchParams.get('t') || ''); return json(res, r ? 200 : 404, { st: r?.st }); }
   if (p === 'seen' && req.method === 'POST') return seen(req, res);
+  if (p === 'ev' && req.method === 'POST') return ev(req, res);
   if (p === 'recalc' && req.method === 'POST') return recalc(req, res);
   if (p.startsWith('admin/')) return adminApi(req, res, p.slice(6));
   if (p.startsWith('bridge/')) {
