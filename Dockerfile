@@ -15,7 +15,7 @@ FROM mirror.gcr.io/library/node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=4321 HOST=0.0.0.0
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/server.mjs /app/chat.mjs /app/package.json ./
+COPY --from=build /app/server.mjs /app/chat.mjs /app/kp.mjs /app/kp-data.mjs /app/package.json ./
 RUN mkdir -p /data && chown node:node /data
 USER node
 EXPOSE 4321

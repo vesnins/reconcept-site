@@ -1,0 +1,40 @@
+/* КП: анкета /kp/new, страница /kp/<токен>, админка — стиль основного сайта */
+.kp,.kpf{max-width:960px;margin:0 auto;padding:60px 20px 120px;color:#000;font-size:16px;line-height:1.55}
+.kpf{max-width:800px}
+.kpf .rq{padding:0;margin-top:60px}
+.kp__meta{margin-bottom:20px;color:var(--gray);font-size:14px}
+.kp__h1{font-size:50px;line-height:1.2;font-weight:400}
+.kp__sub{margin-top:16px;color:var(--gray)}
+.kp__sum{display:flex;flex-wrap:wrap;align-items:center;gap:10px 30px;margin-top:40px}
+.kp__sum>span:last-child{color:var(--gray)}
+.kp__price{font-size:50px;line-height:1.2}
+.kp__price small{font-size:20px}
+.kp__h2{margin:80px 0 20px;font-size:30px;line-height:1.2;font-weight:400}
+.kp__tbl{width:100%;border-collapse:collapse}
+.kp__tbl td{padding:14px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.kp__tbl td:last-child{padding-left:20px;text-align:right;white-space:nowrap}
+.kp__tbl tfoot td{border-bottom:0;font-weight:600}
+.kp__ul li{display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid var(--line)}
+.kp__ul li span:last-child{color:var(--gray);text-align:right}
+.kp__btns,.kpf__btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.kp__note{margin-top:40px;color:var(--gray);font-size:14px}
+.kpf__in,.kpa input,.kpa select{width:100%;padding:12px 0;border:0;border-bottom:1px solid var(--dark);border-radius:0;background:none;font:inherit;font-size:20px;color:#000}
+/* админка */
+.kpa__login{display:flex;flex-direction:column;align-items:flex-start;gap:20px;max-width:400px}
+.kpa__err{color:var(--gray)}
+.kpa__tbl td:last-child{text-align:left}
+.kpa__tbl thead td{color:var(--gray);font-size:14px}
+.kpa__tbl a,.kp__sub a{text-decoration:underline}
+.kpa__ed{display:grid;gap:16px;max-width:480px}
+.kpa__ed label{display:flex;flex-direction:column;gap:4px;color:var(--gray);font-size:14px}
+.kpa__ed b{color:#000;font-weight:600}
+.kpa__ed .pill{justify-self:start}
+.kpa__pre{white-space:pre-wrap;font-size:13px;color:var(--gray)}
+.kpa__act{margin-top:40px}
+@media (max-width:959px){
+  .kp,.kpf{padding-top:40px}
+  .kp__h1,.kp__price{font-size:30px}
+  .kp__h2{margin-top:60px;font-size:24px}
+  .kp__tbl td:last-child{white-space:normal}
+  .kp__btns,.kpf__btns{flex-direction:column;align-items:stretch}
+}

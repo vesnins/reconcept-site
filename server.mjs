@@ -5,6 +5,7 @@ import { stat } from 'node:fs/promises';
 import { join, normalize, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chat } from './chat.mjs';
+import { kp } from './kp.mjs';
 
 const ROOT = fileURLToPath(new URL('./dist/', import.meta.url));
 const PORT = Number(process.env.PORT || 4321);
@@ -66,9 +67,10 @@ async function serveStatic(req, res) {
     if (!st) continue;
     const ext = extname(abs);
     const type = TYPES[ext] || 'application/octet-stream';
+    const kpx = c.startsWith('/kp/') ? { 'X-Robots-Tag': 'noindex, nofollow' } : {};
     const immutable = c.startsWith('/_astro/') || c.startsWith('/fonts/');
     const headers = {
-      ...SECURITY, 'Content-Type': type, Vary: 'Accept-Encoding',
+      ...SECURITY, ...kpx, 'Content-Type': type, Vary: 'Accept-Encoding',
       'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : ext === '.html' ? 'public, max-age=0, must-revalidate' : 'public, max-age=86400',
     };
     const ae = String(req.headers['accept-encoding'] || '');
@@ -100,6 +102,8 @@ http.createServer(async (req, res) => {
     const host = String(req.headers.host || '');
     if (host.startsWith('www.')) { res.writeHead(301, { Location: `https://${host.slice(4)}${url.pathname}${url.search}` }); return res.end(); }
     if (url.pathname.startsWith('/api/chat/')) return chat(req, res, url);
+    if (url.pathname.startsWith('/api/kp/') || /^\/kp\/[\w-]{32}$/.test(url.pathname)) return kp(req, res, url, { SECURITY, ROOT, notFound });
+    if (url.pathname === '/kp/view') return notFound(res);
     if (url.pathname.endsWith('.html')) { res.writeHead(301, { Location: url.pathname.replace(/(index)?\.html$/, '') || '/' }); return res.end(); }
     if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
       res.writeHead(301, { Location: url.pathname.replace(/\/+$/, '') + url.search }); return res.end();

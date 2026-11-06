@@ -22,7 +22,7 @@ setInterval(() => q.gc.run(Date.now() - KEEP), 36e5).unref();
 
 // Лимиты: ключ → [счётчик, сброс]
 const hits = new Map();
-const limit = (k, n, ms) => {
+export const limit = (k, n, ms) => {
   const now = Date.now(); let h = hits.get(k);
   if (!h || h[1] < now) hits.set(k, h = [0, now + ms]);
   return ++h[0] <= n;
@@ -30,12 +30,12 @@ const limit = (k, n, ms) => {
 setInterval(() => { const now = Date.now(); for (const [k, h] of hits) if (h[1] < now) hits.delete(k); for (const [k, t] of typers) if (t[1] < now) typers.delete(k); }, 6e5).unref();
 
 const SID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const str = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
-const ipOf = (req) => String(req.headers['x-forwarded-for'] || '').split(',').pop().trim() || req.socket.remoteAddress || '';
-const hash = (s) => createHash('sha256').update(s).digest();
-const authed = (req) => !!SECRET && timingSafeEqual(hash(String(req.headers.authorization || '')), hash(`Bearer ${SECRET}`));
-const json = (res, code, data) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); };
-const body = (req) => new Promise((ok, no) => {
+export const str = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
+export const ipOf = (req) => String(req.headers['x-forwarded-for'] || '').split(',').pop().trim() || req.socket.remoteAddress || '';
+export const hash = (s) => createHash('sha256').update(s).digest();
+export const authed = (req) => !!SECRET && timingSafeEqual(hash(String(req.headers.authorization || '')), hash(`Bearer ${SECRET}`));
+export const json = (res, code, data) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); };
+export const body = (req) => new Promise((ok, no) => {
   let s = ''; req.setEncoding('utf8');
   req.on('data', (c) => { s += c; if (s.length > 8192) { no(new Error('big')); req.destroy(); } });
   req.on('end', () => { try { ok(JSON.parse(s)); } catch (e) { no(e); } });

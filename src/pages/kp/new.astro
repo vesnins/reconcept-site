@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/quiz.css';
+import '../../styles/kp.css';
+import { SERVICES, TYPES, INDUSTRIES, SCALE, GOODS, FEATURES, FILL, BRAND, REGIONS } from '../../../kp-data.mjs';
+const q = { svc: SERVICES, type: TYPES, ind: INDUSTRIES, scale: SCALE, goods: GOODS, feat: FEATURES, fill: FILL, brand: BRAND, reg: REGIONS };
+---
+<Base title="Коммерческое предложение за минуту — Reconcept" description="Ответьте на несколько вопросов — откроется личная ссылка с ценой и сметой." noindex>
+  <section class="kpf" id="kpf" data-q={JSON.stringify(q)}>
+    <h1 class="kp__h1">Коммерческое предложение за&nbsp;минуту</h1>
+    <p class="kp__sub">Ответьте на несколько вопросов — откроется личная ссылка с ценой и сметой.</p>
+    <div class="rq" id="kpf-step"></div>
+  </section>
+  <script src="../../scripts/kp-form.ts"></script>
+</Base>
