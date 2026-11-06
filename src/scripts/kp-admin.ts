@@ -20,7 +20,7 @@ function login() {
 }
 async function list() {
   const rows: any[] = await api('list');
-  root.innerHTML = `<h1 class="kp__h1">КП</h1><p class="kp__sub"><a href="#stats">Статистика</a></p><table class="kp__tbl kpa__tbl"><thead><tr><td>№</td><td>Создано</td><td>Услуга</td><td>Цена</td><td>Статус</td><td>Визиты</td><td>Последний</td></tr></thead><tbody>${rows.map((r) => `<tr><td><a href="#${r.id}">${r.id}</a></td><td>${dt(r.ts)}</td><td>${label(SERVICES, r.svc)}</td><td>${r.price == null ? '—' : rub(r.price)}</td><td>${ST[r.st]}${r.st === 1 && r.until < Date.now() ? ', срок истёк' : ''}</td><td>${r.n}</td><td>${dt(r.lv)}</td></tr>`).join('')}</tbody></table>
+  root.innerHTML = `<h1 class="kp__h1">Коммерческие предложения</h1><p class="kp__sub"><a href="#stats">Статистика</a></p><table class="kp__tbl kpa__tbl"><thead><tr><td>№</td><td>Создано</td><td>Услуга</td><td>Цена</td><td>Статус</td><td>Визиты</td><td>Последний</td></tr></thead><tbody>${rows.map((r) => `<tr><td><a href="#${r.id}">${r.id}</a></td><td>${dt(r.ts)}</td><td>${label(SERVICES, r.svc)}</td><td>${r.price == null ? '—' : rub(r.price)}</td><td>${ST[r.st]}${r.st === 1 && r.until < Date.now() ? ', срок истёк' : ''}</td><td>${r.n}</td><td>${dt(r.lv)}</td></tr>`).join('')}</tbody></table>
   <p><button class="rq-back" type="button" id="out">Выйти</button></p>`;
   root.querySelector('#out')!.addEventListener('click', async () => { await api('logout', {}); login(); });
 }

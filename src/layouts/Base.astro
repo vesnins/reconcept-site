@@ -5,8 +5,8 @@ import { SITE, INDEX } from '../lib/site';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
-interface Props { title?: string; description?: string; image?: string; noindex?: boolean; article?: { date: string; author?: string } }
-const { title = SITE.title, description = SITE.description, image = '/og.png', noindex = false, article } = Astro.props;
+interface Props { title?: string; description?: string; image?: string; noindex?: boolean; article?: { date: string; author?: string }; bare?: boolean }
+const { title = SITE.title, description = SITE.description, image = '/og.png', noindex = false, article, bare = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname.replace(/(index)?\.html$/, ""), SITE.url).href;
 const robots = !INDEX || noindex;
 ---
@@ -39,10 +39,10 @@ const robots = !INDEX || noindex;
   <slot name="head" />
 </head>
 <body data-ym={import.meta.env.PUBLIC_YM_ID ?? ''}>
-  <Header />
+  {!bare && <Header />}
   <main><slot /></main>
-  <Footer />
-  <div class="cookie" id="cookie" role="region" aria-label="Файлы cookie" hidden><p>Сайт использует cookie и Яндекс Метрику, чтобы становиться удобнее. <a href="/privacy">Подробнее</a></p><div class="ckb"><button type="button" id="ck-yes">ок</button></div></div>
-  <script src="../scripts/site.ts"></script>
+  {!bare && <Footer />}
+  {!bare && <div class="cookie" id="cookie" role="region" aria-label="Файлы cookie" hidden><p>Сайт использует cookie и Яндекс Метрику, чтобы становиться удобнее. <a href="/privacy">Подробнее</a></p><div class="ckb"><button type="button" id="ck-yes">ок</button></div></div>}
+  {!bare && <script src="../scripts/site.ts"></script>}
 </body>
 </html>
