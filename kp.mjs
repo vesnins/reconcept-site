@@ -2,13 +2,13 @@
 // ИИ (отрасль «Другое», хотелка, страницы старого сайта) — через мост на Hetzner: /api/kp/bridge/* (тот же CHAT_SECRET).
 import { DatabaseSync } from 'node:sqlite';
 import { readFile } from 'node:fs/promises';
-import { randomBytes, createHmac, timingSafeEqual } from 'node:crypto';
+import { randomBytes, randomUUID, createHmac, timingSafeEqual } from 'node:crypto';
 import { BlockList, isIP } from 'node:net';
 import { lookup } from 'node:dns';
 import http from 'node:http';
 import https from 'node:https';
 import { gunzipSync, brotliDecompressSync } from 'node:zlib';
-import { limit, str, ipOf, authed, json, body } from './chat.mjs';
+import { limit, str, ipOf, authed, json, body, hooks } from './chat.mjs';
 import { SERVICES, TYPES, INDUSTRIES, SCALE, GOODS, FEATURES, FILL, BRAND, REGIONS, label } from './kp-data.mjs';
 
 /* ---------- НАСТРОЙКИ (правятся здесь) ---------- */
@@ -31,7 +31,9 @@ const STRUCT = {
 };
 const KEEP_SITE = ['Дизайн под вашу отрасль', 'Адаптивная вёрстка для телефонов и планшетов', 'Тексты и наполнение страниц', 'Базовое SEO: заголовки, описания, карта сайта', 'Заявки в Telegram и на почту', 'Подключение домена и Яндекс Метрики'];
 const KEEP_DIRECT = [['Разбор спроса и конкурентов в аукционе', 'До договора'], ['Семантика и минус-слова', 'Месяц 1'], ['Объявления для Поиска и РСЯ', 'Месяц 1'], ['Цели в Метрике на каждую кнопку и форму', 'Месяц 1'], ['Проверка посадочной и защита форм от ботов', 'Месяц 1'], ['Чистка запросов и площадок', 'Постоянно'], ['Тесты объявлений и стратегий', 'Постоянно'], ['Отчёт: расход, заявки, цена заявки', 'Каждый месяц']];
-const LINKS = [['чат telegram', 'https://t.me/vesnin', 'click_telegram'], ['чат whatsapp', 'https://wa.me/message/ZNRHY54PV5TYI1', 'click_whatsapp'], ['чат max', 'https://max.ru/u/f9LHodD0cOLzIoHQFDNyrCKPvcLAdhvTg_SuRq5XdCnqyc_cAKB8rhm9kVM', 'click_max']];
+const TG = 'https://t.me/vesnin', WA = 'https://wa.me/message/ZNRHY54PV5TYI1', MAX = 'https://max.ru/u/f9LHodD0cOLzIoHQFDNyrCKPvcLAdhvTg_SuRq5XdCnqyc_cAKB8rhm9kVM';
+const PH = ['создано', 'открыто', 'изучено', 'хочет работать', 'договор', 'отказ'], STUDY = 30; // «изучено»: секунд на цене и смете
+const REMIND = 15 * 6e4; // «Согласовать» нажал, «Написал» не отмечено — напоминание
 const SITE = 'https://reconcept.ru';
 /* ------------------------------------------------ */
 
@@ -43,24 +45,46 @@ CREATE TABLE IF NOT EXISTS v(id INTEGER PRIMARY KEY AUTOINCREMENT, kp INTEGER NO
 CREATE INDEX IF NOT EXISTS v_kp ON v(kp, vid, id);
 CREATE TABLE IF NOT EXISTS fw(kp INTEGER NOT NULL, ua TEXT, ts INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS job(id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, kp INTEGER, data TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0);
-CREATE TABLE IF NOT EXISTS ev(d TEXT NOT NULL, k TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(d, k));`);
+CREATE TABLE IF NOT EXISTS ev(d TEXT NOT NULL, k TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(d, k));
+CREATE TABLE IF NOT EXISTS act(kp INTEGER NOT NULL, vid TEXT, ts INTEGER NOT NULL, k TEXT NOT NULL, v TEXT);
+CREATE INDEX IF NOT EXISTS act_kp ON act(kp, ts);
+CREATE TABLE IF NOT EXISTS sh(c TEXT PRIMARY KEY, kp INTEGER NOT NULL, vid TEXT, m TEXT, ts INTEGER NOT NULL);`);
+// КП: sid — чат КП, ph — статус (PH), agr/asum/aoff — «Согласовать», ok — «написал» отмечено, rem — напоминание, cht — первое сообщение в чат
 // визит: b — секунды по блокам, lb — блок перед уходом, cp — копирования, pr — печать, cl — нажатия «связаться»
-for (const c of ['b TEXT', 'lb TEXT', 'cp INTEGER DEFAULT 0', 'pr INTEGER DEFAULT 0', 'cl INTEGER DEFAULT 0']) try { db.exec(`ALTER TABLE v ADD COLUMN ${c}`); } catch {}
+for (const c of ['b TEXT', 'lb TEXT', 'cp INTEGER DEFAULT 0', 'pr INTEGER DEFAULT 0', 'cl INTEGER DEFAULT 0', 'f TEXT', 'opt TEXT', 'sum INTEGER']) try { db.exec(`ALTER TABLE v ADD COLUMN ${c}`); } catch {}
+for (const c of ['sid TEXT', 'ph INTEGER DEFAULT 0', 'agr INTEGER', 'asum INTEGER', 'aoff TEXT', 'ok INTEGER DEFAULT 0', 'rem INTEGER DEFAULT 0', 'cht INTEGER', 'agl INTEGER']) try { db.exec(`ALTER TABLE kp ADD COLUMN ${c}`); } catch {}
+for (const { id } of db.prepare('SELECT id FROM kp WHERE sid IS NULL').all()) db.prepare('UPDATE kp SET sid=? WHERE id=?').run(randomUUID(), id);
+db.exec('CREATE UNIQUE INDEX IF NOT EXISTS kp_sid ON kp(sid)');
 const q = {
-  add: db.prepare('INSERT INTO kp(t,svc,a,ts,vid,ip,ua,ref) VALUES(?,?,?,?,?,?,?,?)'),
+  add: db.prepare('INSERT INTO kp(t,svc,a,ts,vid,ip,ua,ref,sid) VALUES(?,?,?,?,?,?,?,?,?)'),
+  bySid: db.prepare('SELECT id FROM kp WHERE sid=?'),
+  sids: db.prepare('SELECT sid FROM kp'),
+  up: db.prepare('UPDATE kp SET ph=? WHERE id=? AND ph<? AND ph<4'),
+  ph: db.prepare('UPDATE kp SET ph=? WHERE id=?'),
+  agr: db.prepare('UPDATE kp SET agr=COALESCE(agr, ?1), agl=?1, asum=?2, aoff=?3, rem=0, ok=0 WHERE id=?4'),
+  ok: db.prepare('UPDATE kp SET ok=1 WHERE id=?'),
+  remind: db.prepare('SELECT id, asum FROM kp WHERE agl<? AND ok=0 AND rem=0'),
+  rem: db.prepare('UPDATE kp SET rem=1 WHERE id=?'),
+  cht: db.prepare('UPDATE kp SET cht=COALESCE(cht, ?) WHERE id=?'),
+  act: db.prepare('INSERT INTO act VALUES(?,?,?,?,?)'),
+  acts: db.prepare('SELECT vid, ts, k, v FROM act WHERE kp=? ORDER BY ts DESC LIMIT 300'),
+  sh: db.prepare('INSERT OR IGNORE INTO sh VALUES(?,?,?,?,?)'),
+  shOf: db.prepare('SELECT * FROM sh WHERE c=?'),
+  shs: db.prepare('SELECT c, vid, m, ts, (SELECT COUNT(*) FROM v WHERE v.f=sh.c) n FROM sh WHERE kp=? ORDER BY ts'),
+  vOpt: db.prepare('UPDATE v SET opt=?, sum=? WHERE id=?'),
   byT: db.prepare('SELECT * FROM kp WHERE t=?'),
   byId: db.prepare('SELECT * FROM kp WHERE id=?'),
   setE: db.prepare('UPDATE kp SET e=? WHERE id=?'),
   done: db.prepare('UPDATE kp SET e=?, c=?, price=?, st=CASE st WHEN 2 THEN 2 ELSE 1 END, until=COALESCE(?, until) WHERE id=?'),
   st: db.prepare('UPDATE kp SET st=? WHERE id=?'),
   stale: db.prepare('SELECT id FROM kp WHERE st=0 AND ts<?'),
-  list: db.prepare(`SELECT id, t, svc, price, st, ts, until, (SELECT COUNT(*) FROM v WHERE kp=kp.id) n, (SELECT MAX(last) FROM v WHERE kp=kp.id) lv FROM kp ORDER BY id DESC LIMIT 500`),
-  visits: db.prepare('SELECT vid, ip, ua, start, last, b, lb, cp, pr, cl FROM v WHERE kp=? ORDER BY id'),
+  list: db.prepare(`SELECT id, t, svc, price, st, ph, agr, ts, until, (SELECT COUNT(*) FROM v WHERE kp=kp.id) n, (SELECT MAX(last) FROM v WHERE kp=kp.id) lv FROM kp ORDER BY id DESC LIMIT 500`),
+  visits: db.prepare('SELECT vid, ip, ua, start, last, b, lb, cp, pr, cl, f, opt, sum FROM v WHERE kp=? ORDER BY id'),
   vB: db.prepare('SELECT b FROM v WHERE id=?'),
   vUpd: db.prepare('UPDATE v SET b=?, lb=COALESCE(?, lb), cp=cp+?, pr=pr+?, cl=cl+? WHERE id=?'),
   evAdd: db.prepare('INSERT INTO ev VALUES(?,?,1) ON CONFLICT(d, k) DO UPDATE SET n=n+1'),
   evSum: db.prepare('SELECT k, SUM(n) n FROM ev WHERE d>=? GROUP BY k'),
-  sKp: db.prepare('SELECT id, svc, a, price, ts, vid, ref FROM kp WHERE ts>=? AND st>0'),
+  sKp: db.prepare('SELECT id, svc, a, price, ts, vid, ref, agr, cht FROM kp WHERE ts>=? AND st>0'),
   sV: db.prepare('SELECT v.kp, v.vid, v.b, v.lb, v.cl, kp.vid cv FROM v JOIN kp ON kp.id=v.kp WHERE kp.ts>=? ORDER BY v.id'),
   lastV: db.prepare('SELECT id, last FROM v WHERE kp=? AND vid=? ORDER BY id DESC LIMIT 1'),
   prevV: db.prepare('SELECT last FROM v WHERE kp=? ORDER BY id DESC LIMIT 1'),
@@ -101,10 +125,10 @@ function workUntil(ts, n = VALID) {
 }
 
 /* ---------- расчёт ---------- */
-function calcSite(a, e) {
+function calcSite(a, e, off = []) {
   const g = e.group?.manual ? e.group.g : a.ind === 'other' ? (e.group?.g ?? 1) : GROUP[a.ind];
   const sc = SCALE.findIndex((x) => x[0] === a.scale);
-  const own = (a.type === 'shop' && (a.goods === 'g3' || a.goods === 'g4')) || a.feat.some((f) => FEAT[f][1] === 2);
+  const own = (a.type === 'shop' && (a.goods === 'g3' || a.goods === 'g4')) || a.feat.some((f) => FEAT[f][1] === 2 && !off.includes(`f:${f}`));
   let pages = 1, typical = 0;
   if (a.type !== 'landing') {
     if (e.pages?.unique) ({ unique: pages, typical } = e.pages);
@@ -115,18 +139,21 @@ function calcSite(a, e) {
   L.push([`Дизайн и разработка: ${label(TYPES, a.type).toLowerCase()} ${own ? 'на своём коде' : 'на Tilda'}${a.type === 'landing' ? '' : `, ${pages} стр.`}`, base]);
   L.push([a.type === 'landing' ? 'Тексты и наполнение' : `Тексты и наполнение, ${pages} стр.`, pages * CONTENT]);
   if (typical) L.push(typical > AUTO ? [`Автоматический перенос ${typical} однотипных страниц`, MIGRATE_H * HOUR] : [`Перенос ${typical} однотипных страниц`, typical * TYPICAL]);
-  for (const f of a.feat) L.push([label(FEATURES, f), FEAT[f][0] * HOUR * (!own && FEAT[f][1] === 1 ? 0.5 : 1)]);
+  for (const f of a.feat) L.push([label(FEATURES, f), FEAT[f][0] * HOUR * (!own && FEAT[f][1] === 1 ? 0.5 : 1), `f:${f}`]);
   if (own && a.fill === 'self') L.push(['Панель управления для самостоятельного наполнения', ADMIN_H * HOUR]);
-  if (a.wish) { const w = e.wish; L.push([w?.title || 'Ваша задача', w?.ok ? w.h * HOUR : null]); }
+  if (a.wish) { const w = e.wish; L.push([w?.title || 'Ваша задача', w?.ok ? w.h * HOUR : null, 'w']); }
   const k = RISK * (a.brand === 'no' ? NOSTYLE : 1);
-  const lines = L.map(([t, v]) => [t, v == null ? null : Math.floor((v * k) / 10) * 10]);
-  return { lines, total: lines.reduce((s, l) => s + (l[1] || 0), 0), pages, typical, own, g, struct: a.type === 'landing' ? null : STRUCT[a.type === 'shop' ? 'shop' : 'corp'].slice(0, Math.min(pages, 20)) };
+  // строка: [название, цена, ключ опции, 1 — снята галочка]
+  const lines = L.map(([t, v, o]) => [t, v == null ? null : Math.floor((v * k) / 10) * 10, ...(o ? [o, +off.includes(o)] : [])]);
+  return { lines, total: lines.reduce((s, l) => s + (l[3] ? 0 : l[1] || 0), 0), pages, typical, own, g, struct: a.type === 'landing' ? null : STRUCT[a.type === 'shop' ? 'shop' : 'corp'].slice(0, Math.min(pages, 20)) };
 }
 function calcDirect(a) {
   const p = DIRECT[a.reg];
   return { lines: [['Настройка и ведение рекламы, в месяц', p]], total: p, budget: ['r1', 'r2', 'r3'].includes(a.reg) ? 30000 : 60000 };
 }
-const calc = (svc, a, e) => (svc === 'site' ? calcSite(a, e) : calcDirect(a));
+const calc = (svc, a, e, off) => (svc === 'site' ? calcSite(a, e, off) : calcDirect(a));
+// Снятые галочки: только существующие опции
+const offOf = (r, x) => { const ok = new Set(parse(r.c).lines?.map((l) => l[2]).filter(Boolean)); return Array.isArray(x) ? [...new Set(x)].filter((o) => ok.has(o)).slice(0, 30) : []; };
 
 function finish(id, renew) {
   const r = q.byId.get(id);
@@ -223,7 +250,8 @@ async function analyze(raw) {
 /* ---------- очередь для моста ---------- */
 const waiters = new Set();
 const enqueue = (kind, kp, data) => { q.job.run(kind, kp, JSON.stringify(data)); for (const w of waiters) w(); };
-const signal = (text, id) => enqueue('sig', id, { text, url: `${SITE}/kp/admin#${id}` });
+// chat — кнопка «Написать» (тема КП в группе), ok — кнопка «✅ Написал»
+const signal = (text, id, o = {}) => enqueue('sig', id, { text, url: `${SITE}/kp/admin#${id}`, ...(o.chat && { chat: { kp: id, sid: q.byId.get(id).sid } }), ...(o.ok && { ok: id }) });
 function pull(req, res) {
   let timer;
   const done = () => {
@@ -281,7 +309,7 @@ async function create(req, res) {
   if (!v || !(Number(b.ms) >= 3000)) return json(res, 400, {});
   if (!limit(`kc${ip}`, 10, 36e5) || !limit('kcall', 300, 36e5)) return json(res, 429, {});
   const t = randomBytes(24).toString('base64url'), { svc, a } = v;
-  const id = Number(q.add.run(t, svc, JSON.stringify(a), Date.now(), str(b.vid, 36), ip, str(req.headers['user-agent'], 300), str(b.ref, 300)).lastInsertRowid);
+  const id = Number(q.add.run(t, svc, JSON.stringify(a), Date.now(), str(b.vid, 36), ip, str(req.headers['user-agent'], 300), str(b.ref, 300), randomUUID()).lastInsertRowid);
   const site = svc === 'site' && a.url && a.type !== 'landing';
   const ai = svc === 'site' && (a.wish || site || (a.ind === 'other' && a.indText));
   if (!ai) { finish(id); return json(res, 200, { t }); }
@@ -297,24 +325,30 @@ async function create(req, res) {
 /* ---------- страница КП ---------- */
 let TPL;
 const tpl = async (root) => (TPL ??= await readFile(`${root}kp/view.html`, 'utf8'));
+const subOf = (r, a, c) => (r.svc === 'site'
+  ? [indOf(a), `${label(SCALE, a.scale)} человек`, a.type === 'landing' ? '' : `расчёт на ${c.pages} стр.`]
+  : [label(REGIONS, a.reg), indOf(a)]).filter(Boolean).join(' · ');
+// Строки сметы; у опций — галочка (пока цена действует)
+const rowsOf = (c, old) => c.lines.map(([t, v, o, x]) => `<tr${x ? ' class="kp__off"' : ''}><td>${o && !old ? `<label class="kp__o"><input type="checkbox" data-o="${o}"${x ? '' : ' checked'}><span>${esc(t)}</span></label>` : esc(t)}</td><td>${old ? '' : v == null ? 'обсудим лично' : rub(v)}</td></tr>`).join('');
+const msgOf = (r, total, old) => `Хочу обсудить КП №${r.id}${old ? '' : ` на ${rub(total)}${r.svc === 'direct' ? ' в месяц' : ''}`}`;
 function render(r, now) {
   const a = parse(r.a), c = parse(r.c), old = r.until < now;
-  const money = (v) => (old ? '' : v == null ? 'обсудим лично' : rub(v));
-  const sub = r.svc === 'site'
-    ? [label(INDUSTRIES, a.ind) === 'Другое' ? a.indText || 'Другое' : label(INDUSTRIES, a.ind), `${label(SCALE, a.scale)} человек`, a.type === 'landing' ? '' : `расчёт на ${c.pages} стр.`]
-    : [label(REGIONS, a.reg), label(INDUSTRIES, a.ind) === 'Другое' ? a.indText : label(INDUSTRIES, a.ind)];
   const h1 = r.svc === 'site' ? `${label(TYPES, a.type)} ${c.own ? 'на своём коде' : 'на Tilda'}` : 'Реклама в Яндекс Директе';
   const total = old
     ? `<div class="kp__sum" data-b="price"><button class="pill pill--fill" type="button" data-recalc>пересчитать</button><span>Срок цены истёк ${day(r.until)}</span></div>`
-    : `<div class="kp__sum" data-b="price"><span class="kp__price">${rub(r.price)}${r.svc === 'direct' ? '<small> в месяц</small>' : ''}</span><span>Цена действует до ${day(r.until)}</span></div>`;
-  const rows = c.lines.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${money(v)}</td></tr>`).join('');
+    : `<div class="kp__sum" data-b="price"><span class="kp__price"><span data-total>${rub(r.price)}</span>${r.svc === 'direct' ? '<small> в месяц</small>' : ''}</span><span>Цена действует до ${day(r.until)}</span></div>`;
   const list = (h, items, b) => `<div data-b="${b}"><h2 class="kp__h2">${h}</h2><ul class="kp__ul">${items.join('')}</ul></div>`;
+  const msg = msgOf(r, r.price, old);
   return `<p class="kp__meta">Коммерческое предложение №${r.id} · ${day(r.ts)}</p>
-<h1 class="kp__h1">${esc(h1)}</h1><p class="kp__sub">${sub.filter(Boolean).map(esc).join(' · ')}</p>${total}
-<div data-b="smeta"><h2 class="kp__h2">Смета</h2><table class="kp__tbl"><tbody>${rows}</tbody>${old ? '' : `<tfoot><tr><td>Итого${r.svc === 'direct' ? ' в месяц' : ''}</td><td>${rub(r.price)}</td></tr></tfoot>`}</table></div>
+<h1 class="kp__h1">${esc(h1)}</h1><p class="kp__sub">${esc(subOf(r, a, c))}</p>${total}
+<div data-b="smeta"><h2 class="kp__h2">Смета</h2>${!old && c.lines.some((l) => l[2]) ? '<p class="kp__note kp__hint">Снимите галочку — цена пересчитается.</p>' : ''}<table class="kp__tbl"><tbody>${rowsOf(c, old)}</tbody>${old ? '' : `<tfoot><tr><td>Итого${r.svc === 'direct' ? ' в месяц' : ''}</td><td data-total>${rub(r.price)}</td></tr></tfoot>`}</table></div>
 ${r.svc === 'direct' ? `<p class="kp__note">Рекламный бюджет Директа оплачивается отдельно: рекомендуем от ${rub(c.budget)} в месяц. Первый месяц — настройка и запуск, стоит столько же, сколько ведение.</p>${list('Что входит', KEEP_DIRECT.map(([t, w]) => `<li><span>${t}</span><span>${w}</span></li>`), 'incl')}`
   : `${c.struct ? list(`Структура сайта`, c.struct.map((s) => `<li>${s}</li>`).concat(c.pages > 20 ? [`<li>и ещё ${c.pages - 20} стр.</li>`] : []), 'struct') : ''}${list('Что входит', KEEP_SITE.map((s) => `<li>${s}</li>`), 'incl')}`}
-<div data-b="contact"><h2 class="kp__h2">Обсудить КП №${r.id}</h2><div class="kp__btns">${LINKS.map(([t, h, g]) => `<a class="pill" href="${h}" target="_blank" rel="noopener" data-goal="${g}">${t}</a>`).join('')}</div></div>
+<div data-b="contact"><h2 class="kp__h2">Согласовать КП №${r.id}</h2><p class="kp__sub">Откроется чат с готовым сообщением «<span data-msg>${esc(msg)}</span>» — останется отправить.</p>
+<div class="kp__btns"><a class="pill pill--fill" href="${TG}?text=${encodeURIComponent(msg)}" data-h="${TG}?text=" target="_blank" rel="noopener" data-agree="tg" data-goal="click_telegram">согласовать в telegram</a><a class="pill pill--fill" href="${MAX}" target="_blank" rel="noopener" data-agree="max" data-goal="click_max">согласовать в max</a></div>
+<p class="kp__note" data-copied hidden>Текст скопирован — вставьте его в чат MAX.</p>
+<h2 class="kp__h2">Вопросы</h2><div class="kp__btns"><button class="pill" type="button" data-chat>чат на этой странице</button><a class="pill" href="${WA}" target="_blank" rel="noopener" data-goal="click_whatsapp">whatsapp</a><a class="pill" href="${TG}" target="_blank" rel="noopener" data-goal="click_telegram">telegram</a></div>
+<h2 class="kp__h2">Переслать</h2><div class="kp__btns"><button class="pill" type="button" data-share="native" hidden>переслать</button><a class="pill" href="https://t.me/share/url" target="_blank" rel="noopener" data-share="tg">переслать в telegram</a><button class="pill" type="button" data-share="copy">скопировать ссылку</button></div></div>
 <p class="kp__note">Не является офертой, итоговая цена после согласования договора.</p>`;
 }
 const PREVIEW = /TelegramBot|WhatsApp|vkShare|facebookexternalhit|Twitterbot|Slackbot|Discordbot|Viber|SkypeUriPreview|YandexBot|Googlebot/i;
@@ -326,13 +360,20 @@ async function view(req, res, t, ctx) {
   const html = r.st === 2 ? '<h1 class="kp__h1">Предложение отозвано</h1><p class="kp__sub">Напишите нам — обновим расчёт.</p>'
     : r.st === 0 ? '<h1 class="kp__h1">Считаю ваше предложение, минутку...</h1><meta http-equiv="refresh" content="3">'
     : render(r, now);
-  const page = (await tpl(ctx.ROOT)).replaceAll('https://reconcept.ru/kp/view', `${SITE}/kp/${t}`).replaceAll('Коммерческое предложение — Reconcept', `КП №${r.id} — Reconcept`).replace('__KP__', () => html).replace('__T__', t);
+  const page = (await tpl(ctx.ROOT)).replaceAll('https://reconcept.ru/kp/view', `${SITE}/kp/${t}`).replaceAll('Коммерческое предложение — Reconcept', `КП №${r.id} — Reconcept`).replace('__KP__', () => html).replace('__T__', t).replace('data-sid="__SID__"', r.st === 1 ? `data-sid="${r.sid}" data-n="${r.id}"` : '');
   res.writeHead(r.st === 2 ? 410 : 200, { ...ctx.SECURITY, 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow', 'Referrer-Policy': 'no-referrer' });
   res.end(page);
 }
 
 /* ---------- отслеживание ---------- */
 const VID = /^[0-9a-f-]{36}$/;
+const BLN = { price: 'Цена', smeta: 'Смета', struct: 'Структура', incl: 'Что входит', contact: 'Согласовать' };
+const up = (id, n) => q.up.run(n, id, n);
+// Лента действий: в базу и тем, кто смотрит (админка, SSE)
+const live = new Map(), pres = new Map(); // id → Set(res); id → состояние клиента
+const push = (id, d) => { for (const r of live.get(id) || []) r.write(`data: ${JSON.stringify(d)}\n\n`); };
+function log(id, vid, k, v) { const ts = Date.now(); q.act.run(id, vid, ts, k, v); push(id, { a: { vid, ts, k, v } }); }
+const state = (id, x) => { const s = Object.assign(pres.get(id) || {}, x, { ts: Date.now() }); pres.set(id, s); push(id, { s: { ...s, o: undefined } }); }; // o — строки сметы, шлются только при смене
 async function seen(req, res) {
   if (!sameOrigin(req)) return json(res, 403, {});
   let b; try { b = await body(req); } catch { return json(res, 400, {}); }
@@ -340,24 +381,86 @@ async function seen(req, res) {
   if (!r || r.st !== 1 || !VID.test(vid) || !limit(`ks${ip}`, 60, 6e5)) return json(res, 200, {});
   if (admin(req)) return json(res, 200, { me: 1 }); // свои просмотры не считаем
   const now = Date.now(), lv = q.lastV.get(r.id, vid);
-  if (lv && now - lv.last < 18e5) { q.touch.run(now, lv.id); act(lv.id, b); return json(res, 200, {}); }
+  if (lv && now - lv.last < 18e5) { q.touch.run(now, lv.id); visit(r.id, lv.id, b); return json(res, 200, {}); }
   if (b.end) return json(res, 200, {});
-  const { n, mine } = q.nV.get(vid, r.id), prev = q.prevV.get(r.id), ua = str(req.headers['user-agent'], 300);
-  act(Number(q.addV.run(r.id, vid, ip, ua, now, now).lastInsertRowid), b);
+  const { n, mine } = q.nV.get(vid, r.id), prev = q.prevV.get(r.id), ua = str(req.headers['user-agent'], 300), f = /^[a-z0-9]{6,12}$/.test(b.f) ? b.f : null;
+  const vi = Number(q.addV.run(r.id, vid, ip, ua, now, now).lastInsertRowid);
+  if (f) db.prepare('UPDATE v SET f=? WHERE id=?').run(f, vi);
+  visit(r.id, vi, b);
+  log(r.id, vid, 'open', `визит ${n + 1} · ${device(ua)}${f ? ' · по пересланной ссылке' : ''}`);
   if (!n && vid === r.vid) return json(res, 200, {}); // первый показ после анкеты
-  const a = parse(r.a);
-  signal([`👀 КП №${r.id} · ${r.svc === 'site' ? label(TYPES, a.type) : 'Директ'} · ${rub(r.price)}`,
+  up(r.id, 1);
+  const a = parse(r.a), sh = f && q.shOf.get(f);
+  signal([`👀 КП №${r.id} · ${r.svc === 'site' ? label(TYPES, a.type) : 'Директ'} · ${rub(r.price)} · ${PH[q.byId.get(r.id).ph]}`,
     `Визит ${n + 1}${prev ? ` · прошлый ${ago(now - prev.last)}` : ''}`,
     `Устройство: ${device(ua)}${mine || vid === r.vid ? '' : ' (новое)'}`,
-    r.until < now ? 'Срок цены истёк' : ''].filter(Boolean).join('\n'), r.id);
+    f ? `Пришёл по пересланной ссылке${sh ? ` (${SHM[sh.m] || sh.m}, ${ago(now - sh.ts)})` : ''}` : '',
+    r.until < now ? 'Срок цены истёк' : ''].filter(Boolean).join('\n'), r.id, { chat: 1 });
   json(res, 200, {});
 }
-const BLOCKS = ['price', 'smeta', 'struct', 'incl', 'contact'];
-function act(id, b) {
+const BLOCKS = Object.keys(BLN);
+function visit(kp, id, b) {
   const s = parse(q.vB.get(id)?.b), d = b.b && typeof b.b === 'object' ? b.b : {}, n = (x, m) => Math.min(Math.max(Math.round(+x || 0), 0), m);
   for (const k of BLOCKS) if (n(d[k], 600)) s[k] = (s[k] || 0) + n(d[k], 600);
   q.vUpd.run(JSON.stringify(s), BLOCKS.includes(b.lb) ? b.lb : null, n(b.cp, 20), n(b.pr, 20), n(b.cl, 20), id);
+  if ((s.price || 0) + (s.smeta || 0) >= STUDY) up(kp, 2);
 }
+// Действия и положение на странице: раз в 5 с, пока смотрят в админке — раз в секунду
+const ACT = { blk: (v) => `смотрит «${BLN[v] || '?'}»`, copy: (v) => `скопировал${v ? `: «${v}»` : ''}`, print: () => 'печать', contact: (v) => `нажал «${v}»`, chat: () => 'открыл чат', leave: () => 'ушёл со страницы' };
+async function act(req, res) {
+  if (!sameOrigin(req)) return json(res, 403, {});
+  let b; try { b = await body(req); } catch { return json(res, 400, {}); }
+  const r = q.byT.get(str(b.t, 40)), vid = str(b.vid, 36);
+  if (!r || r.st !== 1 || !VID.test(vid) || admin(req) || !limit(`ka${ipOf(req)}`, 900, 6e5)) return json(res, 200, {});
+  for (const [k, v] of (Array.isArray(b.e) ? b.e : []).slice(0, 10)) if (ACT[k] && (k !== 'blk' || BLN[v])) log(r.id, vid, k, ACT[k](str(v, 80)));
+  const p = b.p || {};
+  state(r.id, { on: b.end ? 0 : 1, vid, b: BLN[p.b] ? p.b : null, f: Math.min(Math.max(+p.f || 0, 0), 1), w: Math.min(Math.max(Math.round(+b.w) || 0, 0), 4000), dev: device(String(req.headers['user-agent'] || '')) });
+  json(res, 200, { w: live.has(r.id) ? 1 : 0 });
+}
+// Галочки сметы: пересчёт на сервере
+async function opt(req, res) {
+  if (!sameOrigin(req)) return json(res, 403, {});
+  let b; try { b = await body(req); } catch { return json(res, 400, {}); }
+  const r = q.byT.get(str(b.t, 40)), vid = str(b.vid, 36), now = Date.now();
+  if (!r || r.st !== 1 || r.svc !== 'site' || r.until < now || !limit(`ko${ipOf(req)}`, 120, 6e5)) return json(res, 400, {});
+  const off = offOf(r, b.off), c = calc(r.svc, parse(r.a), parse(r.e), off), out = { rows: rowsOf(c, false), total: rub(c.total), msg: msgOf(r, c.total, false) };
+  if (!admin(req) && VID.test(vid)) {
+    const lv = q.lastV.get(r.id, vid); if (lv) q.vOpt.run(JSON.stringify(off), c.total, lv.id);
+    if (b.k && b.log) { const l = c.lines.find((x) => x[2] === b.k); if (l) log(r.id, vid, 'opt', `${l[3] ? 'убрал' : 'вернул'} «${l[0]}» → ${rub(c.total)}`); up(r.id, 2); }
+    const o = { rows: out.rows, total: out.total }; (pres.get(r.id) || pres.set(r.id, {}).get(r.id)).o = o; push(r.id, { o });
+  }
+  json(res, 200, out);
+}
+// «Согласовать»: ссылка в Telegram/MAX открывается сразу, сюда — sendBeacon
+const CHN = { tg: 'Telegram', max: 'MAX' };
+async function agree(req, res) {
+  if (!sameOrigin(req)) return json(res, 403, {});
+  let b; try { b = await body(req); } catch { return json(res, 400, {}); }
+  const r = q.byT.get(str(b.t, 40)), vid = str(b.vid, 36), ip = ipOf(req);
+  if (!r || r.st !== 1 || !CHN[b.ch] || admin(req) || !limit(`kg${ip}`, 10, 36e5)) return json(res, 200, {});
+  const off = offOf(r, b.off), c = calc(r.svc, parse(r.a), parse(r.e), off), old = r.until < Date.now();
+  q.agr.run(Date.now(), c.total, JSON.stringify(off), r.id); up(r.id, 3);
+  const cut = c.lines.filter((l) => l[3]).map((l) => l[0]);
+  log(r.id, vid, 'agree', `нажал «Согласовать» в ${CHN[b.ch]}${old ? ' (срок цены истёк)' : ` на ${rub(c.total)}`}`);
+  if (limit(`kga${r.id}`, 1, 6e5)) signal([`🤝 КП №${r.id}: нажал «Согласовать» в ${CHN[b.ch]}`, old ? 'Срок цены истёк' : `Сумма ${rub(c.total)}${c.total !== r.price ? ` (в КП ${rub(r.price)})` : ''}`, cut.length ? `Убрал: ${cut.join(', ')}` : '', 'Напишет вам в личку. Если написал — нажмите «✅ Написал», иначе через 15 мин напомню.'].filter(Boolean).join('\n'), r.id, { chat: 1, ok: 1 });
+  json(res, 200, {});
+}
+setInterval(() => { for (const x of q.remind.all(Date.now() - REMIND)) { q.rem.run(x.id); signal(`⏰ КП №${x.id}: 15 мин назад нажал «Согласовать» на ${rub(x.asum)}, «Написал» не отмечено. Если сообщения нет — напишите в чат КП.`, x.id, { chat: 1, ok: 1 }); } }, 6e4).unref();
+// «Переслать»: у каждого нажатия своя ссылка /kp/<токен>?f=<код>
+const SHM = { native: 'меню «Поделиться»', tg: 'Telegram', copy: 'скопировал ссылку' };
+async function share(req, res) {
+  if (!sameOrigin(req)) return json(res, 403, {});
+  let b; try { b = await body(req); } catch { return json(res, 400, {}); }
+  const r = q.byT.get(str(b.t, 40)), vid = str(b.vid, 36);
+  if (!r || r.st !== 1 || !SHM[b.m] || !/^[a-z0-9]{6,12}$/.test(b.c) || admin(req) || !limit(`kf${ipOf(req)}`, 30, 36e5)) return json(res, 200, {});
+  q.sh.run(b.c, r.id, vid, b.m, Date.now());
+  log(r.id, vid, 'share', `переслал: ${SHM[b.m]}`);
+  json(res, 200, {});
+}
+// Чат КП (виджет на странице КП): sid КП → номер; сообщение посетителя — в ленту и статус
+hooks.kp = (sid) => q.bySid.get(sid)?.id;
+hooks.sids = () => q.sids.all().map((x) => x.sid);
+hooks.msg = (id, text) => { q.cht.run(Date.now(), id); up(id, 2); log(id, null, 'msg', `написал в чат: «${text.slice(0, 120)}»`); };
 // События анкеты по дням (Москва): form, start, soft, recalc, step:<вопрос>
 const dayMsk = (ts = Date.now()) => new Date(ts + 3 * 36e5).toISOString().slice(0, 10);
 const EV = /^(form|start|soft|step:(svc|type|reg|ind|indText|scale|goods|feat|wish|fill|brand|url))$/;
@@ -383,7 +486,7 @@ function stats(days) {
   const group = (f) => { const m = {}; for (const k of ks) { const x = (m[f(k)] ||= [0, 0, 0, 0]); x[0]++; x[1] += k.ret; x[2] += k.cl > 0; x[3] += k.price || 0; } return Object.entries(m).sort((a, b) => b[1][0] - a[1][0]).map(([g, x]) => [g, x[0], x[1], x[2], Math.round(x[3] / x[0])]); };
   const sum = (p) => (p < 15e4 ? 'до 150 тыс.' : p < 3e5 ? '150–300 тыс.' : p < 6e5 ? '300–600 тыс.' : p < 1e6 ? '600 тыс. – 1 млн' : 'от 1 млн');
   return {
-    ev, created: ks.length, ret: ks.filter((k) => k.ret).length, contact: ks.filter((k) => k.cl).length, nv,
+    ev, created: ks.length, ret: ks.filter((k) => k.ret).length, contact: ks.filter((k) => k.cl).length, chat: ks.filter((k) => k.cht).length, agree: ks.filter((k) => k.agr).length, nv,
     att: Object.fromEntries(BLOCKS.map((b) => [b, nv ? Math.round((att[b] || 0) / nv) : 0])), last,
     type: group((k) => (k.svc === 'site' ? label(TYPES, k.a.type) : 'Директ')), ind: group((k) => indOf(k.a)),
     sum: group((k) => (k.svc === 'site' ? sum(k.price) : 'Директ')), ref: group((k) => src(k.ref)),
@@ -424,11 +527,21 @@ async function adminApi(req, res, p) {
   if (p === 'logout') { res.setHeader('Set-Cookie', 'kpa=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict'); return json(res, 200, {}); }
   if (p === 'list') return json(res, 200, q.list.all());
   if (p === 'stats') return json(res, 200, stats(Number(new URL(req.url, 'http://x').searchParams.get('days')) || 0));
+  if (p === 'live') { // «Смотреть»: действия и положение клиента на странице
+    const id = Number(new URL(req.url, 'http://x').searchParams.get('id')) || 0;
+    if (!q.byId.get(id)) return json(res, 404, {});
+    res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no' });
+    res.write(`retry: 5000\n\ndata: ${JSON.stringify({ s: pres.get(id) || {} })}\n\n`);
+    const set = live.get(id) || live.set(id, new Set()).get(id), ping = setInterval(() => res.write(': \n\n'), 25e3);
+    set.add(res);
+    return res.on('close', () => { clearInterval(ping); set.delete(res); if (!set.size) live.delete(id); });
+  }
   let b = {};
   if (req.method === 'POST') { try { b = await body(req); } catch { return json(res, 400, {}); } }
   const id = Number(b.id || new URL(req.url, 'http://x').searchParams.get('id')) || 0, r = q.byId.get(id);
   if (!r) return json(res, 404, {});
   if (p === 'revoke') q.st.run(b.on ? 2 : 1, id);
+  if (p === 'phase' && PH[b.ph]) q.ph.run(b.ph, id);
   if (p === 'patch' && r.st !== 0) { // ручная правка оценок → пересчёт
     const e = parse(r.e);
     if (b.unique != null) e.pages = { unique: Math.min(Math.max(Math.round(+b.unique) || 1, 1), 100), typical: Math.max(Math.round(+b.typical) || 0, 0), manual: 1 };
@@ -437,11 +550,11 @@ async function adminApi(req, res, p) {
     q.setE.run(JSON.stringify(e), id); finish(id);
   }
   const x = q.byId.get(id);
-  json(res, 200, { ...x, a: parse(x.a), e: parse(x.e), c: parse(x.c), visits: q.visits.all(id).map((v) => ({ ...v, dev: device(v.ua) })), fw: q.fwOf.all(id), labels: { svc: label(SERVICES, x.svc) } });
+  json(res, 200, { ...x, a: parse(x.a), e: parse(x.e), c: parse(x.c), visits: q.visits.all(id).map((v) => ({ ...v, dev: device(v.ua) })), fw: q.fwOf.all(id), acts: q.acts.all(id), sh: q.shs.all(id).map((z) => ({ ...z, m: SHM[z.m] })), html: x.st === 1 ? render(x, Date.now()) : '', PH, labels: { svc: label(SERVICES, x.svc) } });
 }
 
 /* ---------- роутер ---------- */
-const TOKEN = /^\/kp\/([\w-]{32})$/;
+const TOKEN = /^\/kp\/([\w-]{32})$/, POST = { act, opt, agree, share };
 export function kp(req, res, url, ctx) {
   const m = url.pathname.match(TOKEN);
   if (m && req.method === 'GET') return view(req, res, m[1], ctx);
@@ -451,11 +564,13 @@ export function kp(req, res, url, ctx) {
   if (p === 'seen' && req.method === 'POST') return seen(req, res);
   if (p === 'ev' && req.method === 'POST') return ev(req, res);
   if (p === 'recalc' && req.method === 'POST') return recalc(req, res);
+  if (req.method === 'POST' && Object.hasOwn(POST, p)) return POST[p](req, res);
   if (p.startsWith('admin/')) return adminApi(req, res, p.slice(6));
   if (p.startsWith('bridge/')) {
     if (!authed(req)) return json(res, 401, {});
     if (p === 'bridge/pull' && req.method === 'GET') return pull(req, res);
     if (p === 'bridge/done' && req.method === 'POST') return bridgeDone(req, res);
+    if (p === 'bridge/ok' && req.method === 'POST') return body(req).then((b) => { q.ok.run(Number(b.id) || 0); json(res, 200, {}); }, () => json(res, 400, {}));
   }
   json(res, 404, {});
 }

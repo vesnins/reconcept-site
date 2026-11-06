@@ -16,9 +16,11 @@ const q = {
   bySid: db.prepare('SELECT id i, d, t FROM m WHERE sid=? AND id>? ORDER BY id LIMIT 300'),
   has: db.prepare('SELECT 1 FROM m WHERE sid=? LIMIT 1'),
   pull: db.prepare('SELECT id, sid, t, meta FROM m WHERE d=0 AND id>? ORDER BY id LIMIT 50'),
-  gc: db.prepare('DELETE FROM m WHERE ts<?'),
+  gc: db.prepare('DELETE FROM m WHERE ts<? AND sid NOT IN (SELECT value FROM json_each(?))'),
 };
-setInterval(() => q.gc.run(Date.now() - KEEP), 36e5).unref();
+// Чаты КП (kp.mjs): kp(sid) → номер КП, msg(номер, текст) — сообщение посетителя, sids() — не удалять через 30 дней
+export const hooks = {};
+setInterval(() => q.gc.run(Date.now() - KEEP, JSON.stringify(hooks.sids?.() || [])), 36e5).unref();
 
 // Лимиты: ключ → [счётчик, сброс]
 const hits = new Map();
@@ -99,6 +101,8 @@ async function send(req, res) {
   const meta = { page: str(b.page, 200) };
   if (b.chip === 1) meta.chip = 1; // нажата подсказка
   if (fresh) Object.assign(meta, { ref: str(b.ref, 200), ua: str(req.headers['user-agent'], 200) });
+  const kp = hooks.kp?.(sid);
+  if (kp) { meta.kp = kp; hooks.msg?.(kp, text); }
   json(res, 200, { id: insert(sid, 0, text, meta) });
 }
 
@@ -119,7 +123,7 @@ function pull(req, res, url) {
 async function push(req, res) {
   let b; try { b = await body(req); } catch { return json(res, 400, {}); }
   const sid = str(b.sid, 36), text = str(b.text, 4000), d = b.d === 2 ? 2 : 1;
-  if (!SID.test(sid) || !text || !q.has.get(sid)) return json(res, 404, {});
+  if (!SID.test(sid) || !text || !(q.has.get(sid) || hooks.kp?.(sid))) return json(res, 404, {});
   json(res, 200, { id: insert(sid, d, text) });
 }
 

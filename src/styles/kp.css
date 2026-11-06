@@ -38,3 +38,17 @@
   .kp__tbl td:last-child{white-space:normal}
   .kp__btns,.kpf__btns{flex-direction:column;align-items:stretch}
 }
+/* этап 2: галочки сметы, «Смотреть», лента */
+.kp__hint{margin-top:-8px}
+.kp__o{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.kp__o input{flex:none;width:18px;height:18px;margin:3px 0 0;padding:0;border:0;accent-color:var(--dark)}
+.kp__off td{color:var(--gray)}
+.kp__off td:last-child{text-decoration:line-through}
+.kpa__ph{display:flex;align-items:center;gap:16px;max-width:400px;margin-top:20px;color:var(--gray);font-size:14px}
+.kpa__on{margin-left:10px;color:var(--gray);font-size:16px}
+.kpw{position:relative;height:70vh;overflow:auto;border:1px solid var(--line)}
+.kpw__in{margin:0;padding:20px;max-width:none}
+.kpw__b{outline:2px solid var(--dark);outline-offset:6px}
+.kpa__feed{max-height:50vh;overflow:auto;font-size:14px}
+.kpa__feed li{padding:8px 0;border-bottom:1px solid var(--line)}
+.kpa__feed time,.kpa__feed i{color:var(--gray);font-style:normal}

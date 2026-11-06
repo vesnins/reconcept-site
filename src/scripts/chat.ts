@@ -4,12 +4,14 @@ import '../styles/chat.css';
 type M = { i: number; d: number; t: string }; // d: 0 посетитель, 1 Сергей, 2 ИИ
 const API = '/api/chat/';
 const p = location.pathname;
-const CHIPS = p.startsWith('/services/paid-search') ? ['Сколько стоит реклама в Яндексе?', 'Нужен анализ рекламы в Яндексе']
+const KP = document.getElementById('kp')?.dataset.sid || ''; // страница КП: общий чат этого КП
+const CHIPS = KP ? ['Вопрос по смете', 'Когда можно начать?']
+  : p.startsWith('/services/paid-search') ? ['Сколько стоит реклама в Яндексе?', 'Нужен анализ рекламы в Яндексе']
   : p.startsWith('/services/development') ? ['Сколько стоит бот?', 'Перенести телеграм-бота в MAX']
   : p.startsWith('/services/custom-software') ? ['У меня идея, хочу знать цену', 'Обсудить автоматизацию']
   : ['Обсудить создание сайта', 'Реклама в Яндексе', 'Разработать бота', 'Обсудить автоматизацию'];
 const HI = 'Здравствуйте! Я Сергей, обычно отвечаю в течение минуты-двух. Чем могу помочь?';
-const NOTE = 'Ответ придёт сюда. Можно закрыть страницу — переписка сохранится в этом окне на 30 дней.';
+const NOTE = KP ? 'Ответ придёт сюда. Можно закрыть страницу — переписка сохранится на странице КП.' : 'Ответ придёт сюда. Можно закрыть страницу — переписка сохранится в этом окне на 30 дней.';
 const svg = (d: string, n = 24) => `<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="${d}"/></svg>`;
 // Робот-секретарь: линии как в иллюстрациях блога, точечная сетка
 const BOT = '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width=".6" aria-hidden="true"><defs><pattern id="cw-g" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="1" height="1" fill="currentColor" stroke="none" opacity=".25"/></pattern></defs>'
@@ -20,9 +22,11 @@ const BUBBLE = 'M4 5h16v11H9l-5 4z', X = 'M6 6l12 12M18 6 6 18';
 
 // Состояние: sid, последняя активность, последний прочитанный ответ. Через 30 дней тишины — заново.
 let s: { sid?: string; at?: number; seen?: number } = {};
-try { s = JSON.parse(localStorage.getItem('chat') || '{}'); } catch {}
-if (!s.at || Date.now() - s.at > 30 * 864e5) s = {};
-const save = () => { try { localStorage.setItem('chat', JSON.stringify(s)); } catch {} };
+const KEY = KP ? `chat-kp:${KP}` : 'chat';
+try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch {}
+if (!KP && (!s.at || Date.now() - s.at > 30 * 864e5)) s = {};
+if (KP) s.sid = KP;
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
 const ss = (k: string, v?: string) => { try { return v === undefined ? sessionStorage.getItem(k) : sessionStorage.setItem(k, v); } catch { return null; } };
 
 // Источник визита запоминаем на первой странице сессии
@@ -112,7 +116,7 @@ document.addEventListener('visibilitychange', () => {
 
 async function post(t: string, chip = 0) {
   t = t.trim(); if (!t) return;
-  const first = !s.sid;
+  const first = !s.at;
   s.sid ||= crypto.randomUUID(); s.at = Date.now(); save();
   noChips();
   const el = add(t, 0); el.classList.add('cw-wait'); pend.push(el);
