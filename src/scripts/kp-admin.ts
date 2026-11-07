@@ -24,9 +24,10 @@ function login() {
 }
 async function list() {
   const rows: any[] = await api('list');
-  root.innerHTML = `<h1 class="kp__h1">Коммерческие предложения</h1><p class="kp__sub"><a href="#stats">Статистика</a></p><table class="kp__tbl kpa__tbl"><thead><tr><td>№</td><td>Создано</td><td>Услуга</td><td>Цена</td><td>Статус</td><td>Визиты</td><td>Последний</td></tr></thead><tbody>${rows.map((r) => `<tr><td><a href="#${r.id}">${r.id}</a></td><td>${dt(r.ts)}</td><td>${label(SERVICES, r.svc)}</td><td>${r.price == null ? '—' : rub(r.price)}</td><td>${phase(r)}</td><td>${r.n}</td><td>${dt(r.lv)}</td></tr>`).join('')}</tbody></table>
+  root.innerHTML = `<h1 class="kp__h1">Коммерческие предложения</h1><p class="kp__sub"><a href="#stats">Статистика</a></p><table class="kp__tbl kpa__tbl"><thead><tr><td>№</td><td>Создано</td><td>Услуга</td><td>Цена</td><td>Статус</td><td>Визиты</td><td>Последний</td></tr></thead><tbody>${rows.map((r) => `<tr data-id="${r.id}"><td><a href="#${r.id}">${r.id}</a></td><td>${dt(r.ts)}</td><td>${label(SERVICES, r.svc)}</td><td>${r.price == null ? '—' : rub(r.price)}</td><td>${phase(r)}</td><td>${r.n}</td><td>${dt(r.lv)}</td></tr>`).join('')}</tbody></table>
   <p><button class="rq-back" type="button" id="out">Выйти</button></p>`;
   root.querySelector('#out')!.addEventListener('click', async () => { await api('logout', {}); login(); });
+  root.querySelector('tbody')!.addEventListener('click', (e) => { const tr = (e.target as HTMLElement).closest<HTMLElement>('tr[data-id]'); if (tr && !getSelection()?.toString()) location.hash = tr.dataset.id!; }); // вся строка — ссылка на карточку
 }
 async function card(id: number, upd?: object) {
   const k = await api(upd ? 'patch' : `get?id=${id}`, upd ? { id, ...upd } : undefined);

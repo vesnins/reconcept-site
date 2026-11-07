@@ -66,3 +66,4 @@
 .kp__chips [aria-pressed="true"]{background:var(--line);border-color:var(--line)}
 .kp__doubt textarea{resize:none;font-size:16px;margin-bottom:20px}
 @media (max-width:959px){.kp__roi{grid-template-columns:1fr}}
+.kpa__tbl tr[data-id]{cursor:pointer}
