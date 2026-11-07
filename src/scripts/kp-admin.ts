@@ -120,7 +120,7 @@ async function stats(days: number) {
 const route = () => {
   es?.close(); es = null;
   const h = location.hash.slice(1), id = Number(h);
-  (h.startsWith('stats') ? stats(Number(h.split('/')[1] ?? 30) || 0) : id ? card(id) : list()).catch(() => {});
+  (h.startsWith('stats') ? stats(Number(h.split('/')[1] ?? 30) || 0) : id ? card(id) : list()).catch((e) => { if (e) { console.error(e); root.insertAdjacentHTML('afterbegin', '<p class="kpa__err">Ошибка загрузки, обновите страницу</p>'); } });
 };
 addEventListener('hashchange', route);
 route();

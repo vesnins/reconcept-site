@@ -189,8 +189,8 @@ function srcIn(x) {
   const path = (Array.isArray(x.path) ? x.path : []).slice(-15).map((p) => [str(p?.[0], 150), +p?.[1] || 0]).filter((p) => p[0].startsWith('/'));
   return { lp: str(x.lp, 150), ref: str(x.ref, 100), utm, y: x.y ? 1 : 0, ts: +x.ts || 0, path };
 }
-const chan = (s) => (!s ? '' : s.y || (/yandex/i.test(s.utm.source || '') && /cpc|ppc|paid/i.test(s.utm.medium || '')) ? 'Директ' : s.utm.source ? `utm: ${s.utm.source}` : /yandex|google|bing|mail\.ru/.test(s.ref) ? `поиск ${s.ref}` : s.ref || 'прямой заход');
-const srcText = (s) => (s ? [chan(s), s.utm.campaign && `кампания ${s.utm.campaign}`, s.utm.term && `запрос «${s.utm.term}»`, s.lp && `вход ${s.lp}`].filter(Boolean).join(' · ') : '');
+const chan = (s) => (!s?.utm ? '' : s.y || (/yandex/i.test(s.utm.source || '') && /cpc|ppc|paid/i.test(s.utm.medium || '')) ? 'Директ' : s.utm.source ? `utm: ${s.utm.source}` : /yandex|google|bing|mail\.ru/.test(s.ref) ? `поиск ${s.ref}` : s.ref || 'прямой заход');
+const srcText = (s) => (s?.utm ? [chan(s), s.utm.campaign && `кампания ${s.utm.campaign}`, s.utm.term && `запрос «${s.utm.term}»`, s.lp && `вход ${s.lp}`].filter(Boolean).join(' · ') : '');
 const pathText = (s, ts) => s?.path?.length ? s.path.filter((p) => !p[1] || p[1] <= ts).map((p) => p[0]).slice(-8).join(' → ') : '';
 
 /* ---------- кто клиент: город, сеть, компания; повторный; похож на конкурента ---------- */
