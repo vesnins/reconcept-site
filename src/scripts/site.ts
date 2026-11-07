@@ -46,6 +46,22 @@ document.addEventListener('click', (e) => {
 
 export {};
 
+// Для КП: источник (первая страница сессии; последний непрямой — в localStorage), путь по сайту (30 страниц), страницы после КП
+try {
+  const u = new URLSearchParams(location.search), now = Date.now(), ls = localStorage;
+  if (!sessionStorage.getItem('src')) {
+    let ref = ''; try { ref = document.referrer && new URL(document.referrer).host !== location.host ? new URL(document.referrer).host.replace(/^www\./, '') : ''; } catch {}
+    const utm = Object.fromEntries(['source', 'medium', 'campaign', 'content', 'term'].map((k) => [k, u.get(`utm_${k}`) || '']).filter((x) => x[1]));
+    const s = JSON.stringify({ lp: location.pathname, ref, utm, y: u.has('yclid') ? 1 : 0, ts: now });
+    sessionStorage.setItem('src', s);
+    if (ref || u.has('yclid') || Object.keys(utm).length) ls.setItem('src', s);
+  }
+  const path: [string, number][] = JSON.parse(ls.getItem('path') || '[]').filter((x: [string, number]) => now - x[1] < 30 * 864e5).slice(-29);
+  path.push([location.pathname, now]); ls.setItem('path', JSON.stringify(path));
+  const k = JSON.parse(ls.getItem('kpt') || 'null');
+  if (k && now - k.ts < 30 * 864e5 && !location.pathname.startsWith('/kp/')) navigator.sendBeacon('/api/kp/page', new Blob([JSON.stringify({ t: k.t, vid: ls.getItem('kpv'), p: location.pathname })], { type: 'application/json' }));
+} catch {}
+
 // Онлайн-чат: грузится отдельным файлом. До PUBLIC_CHAT=1 — только для проверки: открыть сайт с ?chat=1 (выключить: ?chat=0)
 try {
   const c = new URLSearchParams(location.search).get('chat');

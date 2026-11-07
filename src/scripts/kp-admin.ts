@@ -43,6 +43,7 @@ async function card(id: number, upd?: object) {
   ${k.agr ? `<p class="kp__sub">«Согласовать»: ${dt(k.agl)} на ${rub(k.asum)}${k.ok ? ' · написал ✅' : ''}</p>` : ''}
   <h2 class="kp__h2">Смотреть <span class="kpa__on" id="on">нет на странице</span></h2><div class="kpw" id="kpw"><div class="kp kpw__in" inert>${k.html}</div></div>
   <h2 class="kp__h2">Действия</h2><ol class="kpa__feed" id="feed">${k.acts.map(li).join('') || '<li>нет</li>'}</ol>` : ''}
+  ${who(k)}
   <h2 class="kp__h2">Ответы</h2><table class="kp__tbl"><tbody>${ans.filter((x) => x[1]).map(([t, v]) => `<tr><td>${t}</td><td>${esc(v)}</td></tr>`).join('')}</tbody></table>
   <h2 class="kp__h2">Смета</h2><table class="kp__tbl"><tbody>${(c.lines || []).map(([t, v]: [string, number]) => `<tr><td>${esc(t)}</td><td>${rub(v)}</td></tr>`).join('')}</tbody></table>
   ${k.svc === 'site' ? `<h2 class="kp__h2">Оценки</h2><form class="kpa__ed">
@@ -51,7 +52,7 @@ async function card(id: number, upd?: object) {
     ${a.wish ? `<label>Хотелка: название${flag(e.wish)}<input name="wishTitle" value="${esc(e.wish?.title)}"></label><label>Часы (пусто — «обсудим лично»)<input name="wishH" type="number" min="0" value="${e.wish?.ok ? e.wish.h : ''}"></label>` : ''}
     <button class="pill" type="submit">пересчитать</button></form>
     ${e.site?.text ? `<h2 class="kp__h2">Старый сайт: ${esc(e.site.src)}, ${e.site.total} адресов</h2><pre class="kpa__pre">${esc(e.site.text)}</pre>` : ''}` : ''}
-  <h2 class="kp__h2">Визиты</h2><table class="kp__tbl"><tbody>${k.visits.map((v: any, i: number) => `<tr><td>${i + 1}. ${dt(v.start)} – ${dt(v.last)}</td><td>${esc(v.dev)}${v.vid === k.vid ? ' · автор анкеты' : ''}${v.f ? ' · по пересланной ссылке' : ''} · ${esc(v.ip)}<br>${blocks(v)}${v.opt && v.opt !== '[]' ? ` · смета ${rub(v.sum)}` : ''}</td></tr>`).join('') || '<tr><td>нет</td></tr>'}</tbody></table>
+  <h2 class="kp__h2">Визиты</h2><table class="kp__tbl"><tbody>${k.visits.map((v: any, i: number) => `<tr><td>${i + 1}. ${dt(v.start)} – ${dt(v.last)}</td><td>${esc(v.dev)}${k.G[v.ip] ? ` · ${esc(k.G[v.ip])}` : ''}${v.tz ? ` · ${esc(v.tz)}` : ''}${v.vid === k.vid ? ' · автор анкеты' : ''}${v.f ? ' · по пересланной ссылке' : ''} · ${esc(v.ip)}<br>${blocks(v)}${v.opt && v.opt !== '[]' ? ` · смета ${rub(v.sum)}` : ''}</td></tr>`).join('') || '<tr><td>нет</td></tr>'}</tbody></table>
   ${k.sh.length ? `<h2 class="kp__h2">Переслали</h2><table class="kp__tbl"><tbody>${k.sh.map((z: any) => `<tr><td>${dt(z.ts)} · ${esc(z.m)}</td><td>открыли ${z.n} раз</td></tr>`).join('')}</tbody></table>` : ''}
   ${k.fw.length ? `<h2 class="kp__h2">Превью ссылки</h2><table class="kp__tbl"><tbody>${k.fw.map((f: any) => `<tr><td>${dt(f.ts)}</td><td>${esc(f.ua)}</td></tr>`).join('')}</tbody></table>` : ''}
   <p class="kpa__act"><button class="pill" type="button" id="rv">${k.st === 2 ? 'вернуть ссылку' : 'отозвать ссылку'}</button></p>`;
@@ -67,7 +68,14 @@ async function card(id: number, upd?: object) {
     card(id, u);
   };
 }
-const BL: Record<string, string> = { price: 'Цена', smeta: 'Смета', struct: 'Структура', incl: 'Что входит', contact: 'Согласовать' };
+const BL: Record<string, string> = { price: 'Цена', smeta: 'Смета', struct: 'Структура', incl: 'Что входит', cases: 'Кейсы', roi: 'Окупаемость', contact: 'Согласовать', doubt: 'Что смущает' };
+// Кто клиент: источник, путь, город и сеть, повторный, конкурент, окупаемость, «что смущает»
+function who(k: any) {
+  const w = k.who, r = w.roi, d = w.doubt;
+  const rows = [['Откуда', w.src], ['Путь до анкеты', w.path], ['Город и сеть', w.geo], ['Повторный клиент', w.repeat.join(', ')], ['⚠️ Похож на конкурента', w.rival.join(', ')],
+    ['Окупаемость', r.check && `чек ${rub(r.check)}, заявок ${r.leads} в месяц, покупают ${r.conv} из 10`], ['Что смущает', d.ts && [d.d.join(', '), d.text && `«${d.text}»`].filter(Boolean).join(' · ')]];
+  return `<h2 class="kp__h2">Клиент</h2><table class="kp__tbl kpa__tbl"><tbody>${rows.filter((x) => x[1]).map(([t, v]) => `<tr><td>${t}</td><td>${esc(v)}</td></tr>`).join('') || '<tr><td>нет данных</td></tr>'}</tbody></table>`;
+}
 const li = (a: any) => `<li><time>${dt(a.ts)}</time> ${a.vid ? `<i>${esc(a.vid.slice(0, 4))}</i> ` : ''}${esc(a.v)}</li>`;
 // «Смотреть»: копия КП в ширину экрана клиента, прокрутка к его блоку, галочки, лента действий
 function watch(id: number) {
@@ -106,7 +114,7 @@ async function stats(days: number) {
   ${tbl('Воронка', ['', 'Число', 'От предыдущего'], fun.map(([n, v], i) => [n, v, i ? pct(v, fun[i - 1][1]) : '']))}
   <p class="kp__note">«Пересчитать» нажали: ${e.recalc || 0}. Ушли в «Программы и боты»: ${e.soft || 0}.</p>
   ${tbl('Анкета: до какого вопроса дошли', ['Вопрос', 'Дошли', 'От открывших'], STEPS.filter(([k]) => e[`step:${k}`]).map(([k, n]) => [n, e[`step:${k}`], pct(e[`step:${k}`], e.form || 0)]))}
-  ${g('По услуге', s.type)}${g('По сумме', s.sum)}${g('По отрасли', s.ind)}${g('По источнику', s.ref)}
+  ${g('По услуге', s.type)}${g('По сумме', s.sum)}${g('По отрасли', s.ind)}${g('По источнику', s.ref)}${g('По кампании (utm_campaign)', s.camp)}
   ${tbl(`Внимание в КП (визитов: ${s.nv})`, ['Блок', 'Секунд за визит', 'Вышли на блоке'], Object.keys(BL).map((k) => [BL[k], s.att[k], s.last[k] || 0]))}`;
 }
 const route = () => {

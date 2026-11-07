@@ -17,7 +17,8 @@ if (url.searchParams.has('f')) { url.searchParams.delete('f'); history.replaceSt
 let B: Record<string, number> = {}, lb = '', cp = 0, pr = 0, cl = 0, shown = 0, timer = 0, sent = false, viewed = false, w = 0, k = 0;
 const vis = new Set<string>(), E: [string, string][] = [];
 const ev = (k: string, v = '') => E.push([k, v]);
-const data = () => { const d = { b: B, lb, cp, pr, cl, f }; B = {}; cp = pr = cl = 0; return d; };
+const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return ''; } })();
+const data = () => { const d = { b: B, lb, cp, pr, cl, f, tz }; B = {}; cp = pr = cl = 0; return d; };
 const flush = () => post('seen', data()).then((r) => r.json()).then((x) => { if (!x.me && !viewed) { viewed = true; window.goal?.('kp_view'); } }).catch(() => {});
 // Положение: блок посередине экрана и доля пройденного в нём
 function pos() {
@@ -47,6 +48,7 @@ if (live) {
     if (e.isIntersecting) { vis.add(b); if (lb !== b) ev('blk', (lb = b)); } else vis.delete(b);
   }), { rootMargin: '-40% 0px -40% 0px' }); // блок в средней полосе экрана
   $$('[data-b]').forEach((el) => io.observe(el));
+  try { localStorage.setItem('kpt', JSON.stringify({ t, ts: Date.now() })); } catch {} // site.ts: страницы сайта после КП
   document.addEventListener('visibilitychange', run);
   addEventListener('pagehide', leave);
   document.addEventListener('copy', () => { cp++; ev('copy', String(getSelection() || '').trim().slice(0, 80)); });
@@ -113,6 +115,48 @@ $$('[data-share]').forEach((el) => {
     else navigator.clipboard?.writeText(u).then(() => { el.textContent = 'ссылка скопирована'; setTimeout(() => (el.textContent = 'скопировать ссылку'), 2000); }, () => {});
   });
 });
+
+// Окупаемость: считаем здесь, цифры клиента — на сервер через 1,5 с после ввода
+const roi = box.querySelector<HTMLFormElement>('.kp__roi'), out = box.querySelector<HTMLElement>('[data-roi-out]');
+const num = (s: string) => +s.replace(/\D/g, '');
+const fmt = (n: number) => Math.round(n).toLocaleString('ru-RU');
+let rt = 0;
+function calc(save = true) {
+  if (!roi || !out) return;
+  const d = Object.fromEntries([...new FormData(roi)].map(([k, v]) => [k, +v])) as Record<string, number>, conv = Math.min(Math.max(d.conv || 2, 1), 10) / 10;
+  if (!(d.check > 0)) return void (out.textContent = '');
+  const direct = roi.dataset.svc === 'direct', cost = direct ? +roi.dataset.cost! : num(box.querySelector('[data-total]')?.textContent || '');
+  const deals = Math.ceil(cost / d.check), sales = d.leads * conv, months = sales ? cost / (sales * d.check) : 0;
+  out.textContent = direct
+    ? `Реклама с бюджетом окупается при ${deals} ${deals % 10 === 1 && deals % 100 !== 11 ? 'продаже' : 'продажах'} в месяц.${sales ? ` При ваших цифрах — ${fmt(sales)} в месяц, выручка ${fmt(sales * d.check)} ₽.` : ''}`
+    : `Вложения вернутся с выручки ${deals} ${deals % 10 === 1 && deals % 100 !== 11 ? 'продажи' : 'продаж'}.${months ? ` При ваших цифрах — примерно за ${months < 1 ? 'месяц' : `${Math.ceil(months * 2) / 2} мес.`}` : ''}`;
+  try { localStorage.setItem(`kpr${t}`, JSON.stringify(d)); } catch {}
+  if (!save) return;
+  clearTimeout(rt); rt = window.setTimeout(() => { post('roi', d); window.goal?.('kp_roi'); }, 1500);
+}
+if (roi) {
+  try { const d = JSON.parse(localStorage.getItem(`kpr${t}`) || '{}'); for (const k in d) if (roi.elements.namedItem(k)) (roi.elements.namedItem(k) as HTMLInputElement).value = d[k]; } catch {}
+  roi.addEventListener('input', () => calc());
+  roi.addEventListener('submit', (e) => e.preventDefault());
+  new MutationObserver(() => calc(false)).observe(box.querySelector('[data-total]') || box, { childList: true, characterData: true, subtree: true }); // сумма по галочкам
+  calc(false);
+}
+
+// «Что смущает?»: выбор вариантов и текст, одна отправка
+const dq = box.querySelector<HTMLElement>('.kp__doubt');
+if (dq) {
+  const send = dq.querySelector<HTMLButtonElement>('[data-doubt]')!, ta = dq.querySelector('textarea')!;
+  const sel = () => [...dq.querySelectorAll<HTMLElement>('[aria-pressed="true"]')].map((b) => +b.dataset.d!);
+  const upd = () => (send.disabled = !sel().length && !ta.value.trim());
+  dq.querySelectorAll<HTMLElement>('[data-d]').forEach((b) => b.addEventListener('click', () => { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); upd(); }));
+  ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = `${ta.scrollHeight}px`; upd(); });
+  send.addEventListener('click', () => {
+    post('doubt', { d: sel(), text: ta.value }).catch(() => {});
+    window.goal?.('kp_doubt');
+    dq.querySelectorAll('button, textarea').forEach((x) => ((x as HTMLButtonElement).disabled = true));
+    dq.querySelector<HTMLElement>('[data-doubt-ok]')!.hidden = false;
+  });
+}
 
 box.querySelector('[data-recalc]')?.addEventListener('click', async (e) => {
   (e.currentTarget as HTMLButtonElement).disabled = true;

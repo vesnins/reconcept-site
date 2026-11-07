@@ -52,3 +52,17 @@
 .kpa__feed{max-height:50vh;overflow:auto;font-size:14px}
 .kpa__feed li{padding:8px 0;border-bottom:1px solid var(--line)}
 .kpa__feed time,.kpa__feed i{color:var(--gray);font-style:normal}
+/* этап 3: кейсы, отзыв, окупаемость, «Что смущает?» */
+.kp__cases a{text-decoration:underline}
+.kp__rev{margin-top:30px;padding-left:20px;border-left:1px solid var(--line)}
+.kp__rev footer{margin-top:8px;color:var(--gray);font-size:14px}
+.kp__roi{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:24px}
+.kp__roi label{display:flex;flex-direction:column;gap:4px;color:var(--gray);font-size:14px}
+.kp__roi input{width:100%;padding:12px 0;border:0;border-bottom:1px solid var(--dark);border-radius:0;background:none;font:inherit;font-size:20px;color:#000}
+.kp__roi-out{margin-top:24px;font-size:20px}
+.kp__doubt{margin-top:80px}
+.kp__h3{font-size:20px;line-height:1.3;font-weight:400}
+.kp__chips{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
+.kp__chips [aria-pressed="true"]{background:var(--line);border-color:var(--line)}
+.kp__doubt textarea{resize:none;font-size:16px;margin-bottom:20px}
+@media (max-width:959px){.kp__roi{grid-template-columns:1fr}}

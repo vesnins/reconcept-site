@@ -90,12 +90,16 @@ function soft() {
   root.append(back);
 }
 const WAIT: Record<string, string> = { wish: 'Считаю требуемый вам функционал, минутку...', pages: 'Анализирую количество страниц вашего сайта, минутку...' };
+// Источник и путь по сайту — из site.ts
+function srcOf() {
+  try { return { ...JSON.parse(sessionStorage.getItem('src') || localStorage.getItem('src') || '{}'), path: JSON.parse(localStorage.getItem('path') || '[]') }; } catch { return null; }
+}
 async function send() {
   root.innerHTML = '';
   const msg = el('h2', 'rq-q', 'Готовлю предложение...');
   root.append(msg);
   try {
-    const r = await fetch('/api/kp/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...A, vid, ms: Date.now() - t0, ref: document.referrer }) });
+    const r = await fetch('/api/kp/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...A, vid, ms: Date.now() - t0, ref: document.referrer, src: srcOf() }) });
     if (!r.ok) throw r.status;
     const { t, wait } = await r.json();
     window.goal?.('kp_create');
