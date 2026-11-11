@@ -201,11 +201,11 @@ async function geo(ip) {
   const c = q.geo.get(ip);
   if (c && Date.now() - c.ts < GEO_TTL) return parse(c.d);
   if (pend.has(ip)) return pend.get(ip);
-  const p = (async () => {
+  const p = (async () => { try {
     const ripe = (d) => getJ(`https://stat.ripe.net/data/${d}/data.json?resource=${ip}&sourceapp=reconcept`);
     const [dd, po, wh] = await Promise.all([DADATA ? getJ(`https://suggestions.dadata.ru/suggestions/api/4_1/rs/iplocate/address?ip=${ip}`, { Authorization: `Token ${DADATA}` }) : null, ripe('prefix-overview'), ripe('whois')]);
-    const loc = dd?.location?.data, asn = po?.data?.asns?.[0], rec = wh?.data?.records?.[0] || [];
-    const f = (k) => rec.filter((x) => x.key === k).map((x) => x.value).join(' ').slice(0, 120);
+    const loc = dd?.location?.data, asn = po?.data?.asns?.[0], r0 = wh?.data?.records?.[0], rec = Array.isArray(r0) ? r0 : [];
+    const f = (k) => rec.filter((x) => x?.key === k).map((x) => x.value).join(' ').slice(0, 120);
     const holder = String(asn?.holder || '').slice(0, 120), net = f('netname'), descr = f('descr') || f('org-name');
     const all = `${holder} ${net} ${descr}`;
     // своя сеть компании: описание блока не про провайдера
@@ -213,8 +213,8 @@ async function geo(ip) {
     const d = { city: loc ? [loc.city || loc.settlement || loc.region, loc.country !== 'Россия' && loc.country].filter(Boolean).join(', ') : '',
       isp: holder, net: NET_DC.test(all) ? 'дата-центр или VPN' : NET_MOB.test(all) ? 'мобильная' : office ? 'офисная' : holder ? 'домашняя или офисная' : '', org: office ? descr : '' };
     if (holder || d.city) q.geoSet.run(ip, Date.now(), JSON.stringify(d));
-    pend.delete(ip); return d;
-  })();
+    return d;
+  } catch (e) { console.error(e); return {}; } finally { pend.delete(ip); } })();
   pend.set(ip, p); return p;
 }
 const geoText = (g) => [g.city, g.org ? `${g.org} (${g.net})` : g.net && `${g.net} сеть${g.isp ? `, ${g.isp}` : ''}`].filter(Boolean).join(' · ');
@@ -270,6 +270,7 @@ function get(href, max = 4e6, hops = 3) {
     const req = (u.protocol === 'https:' ? https : http).get(u, { lookup: safeLookup, timeout: 8000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ReconceptBot/1.0; +https://reconcept.ru)', 'Accept-Encoding': 'gzip, br' } }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && hops) { res.resume(); return get(new URL(res.headers.location, u).href, max, hops - 1).then(ok, no); }
       const parts = []; let n = 0;
+      res.on('error', no); res.on('close', () => no(new Error('closed'))); // обрыв ответа — не ждать вечно
       res.on('data', (c) => { n += c.length; if (n > max) { req.destroy(); no(new Error('big')); } else parts.push(c); });
       res.on('end', () => {
         try {
@@ -280,6 +281,7 @@ function get(href, max = 4e6, hops = 3) {
       });
     });
     req.on('timeout', () => req.destroy(new Error('timeout')));
+    const dl = setTimeout(() => req.destroy(new Error('timeout')), 2e4); req.on('close', () => clearTimeout(dl)); // предел на весь ответ: защита от медленной отдачи
     req.on('error', no);
   });
 }
@@ -501,7 +503,7 @@ async function act(req, res) {
   let b; try { b = await body(req); } catch { return json(res, 400, {}); }
   const r = q.byT.get(str(b.t, 40)), vid = str(b.vid, 36);
   if (!r || r.st !== 1 || !VID.test(vid) || admin(req) || !limit(`ka${ipOf(req)}`, 900, 6e5)) return json(res, 200, {});
-  for (const [k, v] of (Array.isArray(b.e) ? b.e : []).slice(0, 10)) if (ACT[k] && (k !== 'blk' || BLN[v])) log(r.id, vid, k, ACT[k](str(v, 80)));
+  for (const [k, v] of (Array.isArray(b.e) ? b.e : []).filter(Array.isArray).slice(0, 10)) if (ACT[k] && (k !== 'blk' || BLN[v])) log(r.id, vid, k, ACT[k](str(v, 80)));
   const p = b.p || {};
   state(r.id, { on: b.end ? 0 : 1, vid, b: BLN[p.b] ? p.b : null, f: Math.min(Math.max(+p.f || 0, 0), 1), w: Math.min(Math.max(Math.round(+b.w) || 0, 0), 4000), dev: device(String(req.headers['user-agent'] || '')) });
   json(res, 200, { w: live.has(r.id) ? 1 : 0 });

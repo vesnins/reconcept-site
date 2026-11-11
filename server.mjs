@@ -9,6 +9,8 @@ import { kp } from './kp.mjs';
 
 const ROOT = fileURLToPath(new URL('./dist/', import.meta.url));
 const PORT = Number(process.env.PORT || 4321);
+const SITE = 'https://reconcept.ru';
+process.on('unhandledRejection', (e) => console.error(e)); // ошибка в одном запросе не роняет сервер
 const HOST = process.env.HOST || '0.0.0.0';
 
 const TYPES = {
@@ -53,11 +55,11 @@ async function file(p) {
   try { const s = await stat(p); return s.isFile() ? s : null; } catch { return null; }
 }
 
-async function serveStatic(req, res) {
+async function serveStatic(req, res, url) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return false;
   let path;
-  try { path = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { return false; }
-  if (path.includes('\0')) return false;
+  try { path = decodeURIComponent(url.pathname); } catch { return false; }
+  if (path.includes('\0') || /^\/kp\/view(\.html)?$/i.test(path)) return false; // шаблон КП отдаёт только kp.mjs
   const rel = normalize(path).replace(/^(\.\.[/\\])+/, '');
   const cands = rel.endsWith('/') ? [join(rel, 'index.html')] : [rel, rel + '.html'];
   for (const c of cands) {
@@ -98,23 +100,22 @@ async function notFound(res) {
 http.createServer(async (req, res) => {
   try {
     // Без www и без хвостового слэша
-    const url = new URL(req.url, 'http://x');
+    const url = new URL('http://x/' + req.url.replace(/^[/\\]+/, '')); // без //host и абсолютных адресов — редирект только внутри сайта
     const host = String(req.headers.host || '');
-    if (host.startsWith('www.')) { res.writeHead(301, { Location: `https://${host.slice(4)}${url.pathname}${url.search}` }); return res.end(); }
-    if (url.pathname.startsWith('/api/chat/')) return chat(req, res, url);
-    if (url.pathname.startsWith('/api/kp/') || /^\/kp\/[\w-]{32}$/.test(url.pathname)) return kp(req, res, url, { SECURITY, ROOT, notFound });
-    if (url.pathname === '/kp/view') return notFound(res);
-    if (url.pathname.endsWith('.html')) { res.writeHead(301, { Location: url.pathname.replace(/(index)?\.html$/, '') || '/' }); return res.end(); }
+    if (host.startsWith('www.')) { res.writeHead(301, { Location: `${SITE}${url.pathname}${url.search}` }); return res.end(); }
+    if (url.pathname.startsWith('/api/chat/')) return await chat(req, res, url);
+    if (url.pathname.startsWith('/api/kp/') || /^\/kp\/[\w-]{32}$/.test(url.pathname)) return await kp(req, res, url, { SECURITY, ROOT, notFound });
+        if (url.pathname.endsWith('.html')) { res.writeHead(301, { Location: url.pathname.replace(/(index)?\.html$/, '') || '/' }); return res.end(); }
     if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
       res.writeHead(301, { Location: url.pathname.replace(/\/+$/, '') + url.search }); return res.end();
     }
     if (url.pathname === '/index' || url.pathname === '/index.html') { res.writeHead(301, { Location: '/' }); return res.end(); }
     const to = redirectTo(url.pathname);
     if (to) { res.writeHead(301, { Location: to }); return res.end(); }
-    if (await serveStatic(req, res)) return;
+    if (await serveStatic(req, res, url)) return;
     return notFound(res);
   } catch (e) {
     console.error(e);
-    if (!res.headersSent) res.writeHead(500); res.end();
+    if (!res.headersSent) res.writeHead(500, { 'Cache-Control': 'no-store' }); res.end();
   }
 }).listen(PORT, HOST, () => console.log(`reconcept.ru listening on ${HOST}:${PORT}`));

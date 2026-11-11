@@ -40,7 +40,7 @@ export const json = (res, code, data) => { res.writeHead(code, { 'Content-Type':
 export const body = (req) => new Promise((ok, no) => {
   let s = ''; req.setEncoding('utf8');
   req.on('data', (c) => { s += c; if (s.length > 8192) { no(new Error('big')); req.destroy(); } });
-  req.on('end', () => { try { ok(JSON.parse(s)); } catch (e) { no(e); } });
+  req.on('end', () => { try { const v = JSON.parse(s); v && typeof v === 'object' && !Array.isArray(v) ? ok(v) : no(new Error('type')); } catch (e) { no(e); } }); // только объект: null и числа роняли обработчики
   req.on('error', no);
 });
 
