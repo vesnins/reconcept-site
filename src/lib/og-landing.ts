@@ -5,7 +5,7 @@ import { Resvg } from '@resvg/resvg-js';
 import sharp from 'sharp';
 
 const f = (n: string) => readFileSync(`${process.cwd()}/src/og/${n}`);
-const el = (style: object, children?: unknown) => ({ type: 'div', props: { style: { display: 'flex', ...style }, children } });
+const el = (style: object, children?: unknown) => ({ type: 'div', props: { style: { display: 'flex', boxSizing: 'border-box', ...style }, children } });
 
 export async function ogLanding(top: string, title: string, foot: string) {
   const node = el({ width: 1200, height: 630, padding: 24, background: '#2563eb', color: '#fff' },

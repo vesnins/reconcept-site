@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "engines": {
-    "node": ">=22"
+    "node": ">=22.23.4"
   },
   "scripts": {
     "dev": "astro dev",
@@ -16,13 +16,16 @@
     "@fontsource-variable/inter": "5.3.0",
     "@fontsource-variable/jetbrains-mono": "5.3.0",
     "@resvg/resvg-js": "^2.6.2",
-    "astro": "5.18.2",
-    "satori": "^0.18.3",
-    "sharp": "0.34.5"
+    "astro": "7.4.11",
+    "satori": "0.63.2",
+    "sharp": "0.35.5"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.4",
-    "@types/node": "22.18.8",
+    "@astrojs/check": "0.9.12",
+    "@types/node": "22.20.5",
     "typescript": "5.9.3"
+  },
+  "overrides": {
+    "fflate": "0.7.5"
   }
 }

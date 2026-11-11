@@ -1,4 +1,4 @@
-# reconcept.ru — Astro 5, статика
+# reconcept.ru — Astro 7, статика
 
 - `npm run dev` — локально; `npm run build` — сборка в `dist/` + br/gzip; `npm start` — сервер (порт 4321).
 - Деплой: Coolify → Dockerfile, порт 4321. Build Variables: `PUBLIC_YM_ID=5609182`, после переезда `PUBLIC_INDEX=1` (открывает индексацию).
