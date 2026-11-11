@@ -104,6 +104,7 @@ const blocks = (v: any) => {
   return [Object.keys(BL).filter((k) => b[k]).map((k) => `${BL[k]} ${b[k]} с`).join(', '), v.lb && `вышел: ${BL[v.lb]}`, v.cp && `копировал ${v.cp}`, v.pr && `печать ${v.pr}`, v.cl && `нажал «связаться» ${v.cl}`].filter(Boolean).join(' · ');
 };
 const STEPS: [string, string][] = [['svc', 'Услуга'], ['type', 'Тип сайта'], ['reg', 'Регионы'], ['ind', 'Отрасль'], ['indText', 'Своя отрасль'], ['scale', 'Масштаб'], ['goods', 'Товары'], ['feat', 'Функции'], ['wish', 'Своя задача'], ['fill', 'Наполнение'], ['brand', 'Стиль'], ['url', 'Адрес сайта']];
+const TIPS: [string, string][] = [['kp', 'Вернулся после КП'], ['direct', 'Пришёл из Директа'], ['cases', 'Смотрит кейсы'], ['price', 'Страница услуги'], ['back', 'Повторный визит'], ['exit', 'Уходит со страницы'], ['idle', '30 секунд на странице'], ['form', 'Завис на анкете']];
 const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)} %` : '—');
 const tbl = (h: string, head: string[], rows: unknown[][]) => `<h2 class="kp__h2">${h}</h2><table class="kp__tbl kpa__tbl"><thead><tr>${head.map((x) => `<td>${x}</td>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((x) => `<td>${esc(x)}</td>`).join('')}</tr>`).join('') || '<tr><td>нет данных</td></tr>'}</tbody></table>`;
 async function stats(days: number) {
@@ -113,7 +114,8 @@ async function stats(days: number) {
   root.innerHTML = `<p><a class="rq-back" href="#">← все КП</a></p><h1 class="kp__h1">Статистика</h1>
   <p class="kp__sub">${[[7, '7 дней'], [30, '30 дней'], [90, '90 дней'], [0, 'всё время']].map(([d, t]) => d === days ? `<b>${t}</b>` : `<a href="#stats/${d}">${t}</a>`).join(' · ')}</p>
   ${tbl('Воронка', ['', 'Число', 'От предыдущего'], fun.map(([n, v], i) => [n, v, i ? pct(v, fun[i - 1][1]) : '']))}
-  <p class="kp__note">«Пересчитать» нажали: ${e.recalc || 0}. Ушли в «Программы и боты»: ${e.soft || 0}.</p>
+  <p class="kp__note">«Пересчитать» нажали: ${e.recalc || 0}. Ушли в «Программы и боты»: ${e.soft || 0}. КП создал робот в чате: ${s.bot || 0}.</p>
+  ${tbl('Приглашения в чат', ['Приглашение', 'Показано', 'Открыли чат', 'Написали', 'Закрыли'], TIPS.filter(([k]) => e[`tip:${k}`]).map(([k, n]) => [n, e[`tip:${k}`], `${e[`tipo:${k}`] || 0} (${pct(e[`tipo:${k}`] || 0, e[`tip:${k}`])})`, `${e[`tipm:${k}`] || 0} (${pct(e[`tipm:${k}`] || 0, e[`tip:${k}`])})`, e[`tips:${k}`] || 0]))}
   ${tbl('Анкета: до какого вопроса дошли', ['Вопрос', 'Дошли', 'От открывших'], STEPS.filter(([k]) => e[`step:${k}`]).map(([k, n]) => [n, e[`step:${k}`], pct(e[`step:${k}`], e.form || 0)]))}
   ${g('По услуге', s.type)}${g('По сумме', s.sum)}${g('По отрасли', s.ind)}${g('По источнику', s.ref)}${g('По кампании (utm_campaign)', s.camp)}
   ${tbl(`Внимание в КП (визитов: ${s.nv})`, ['Блок', 'Секунд за визит', 'Вышли на блоке'], Object.keys(BL).map((k) => [BL[k], s.att[k], s.last[k] || 0]))}`;

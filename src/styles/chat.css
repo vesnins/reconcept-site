@@ -34,7 +34,7 @@
 @keyframes cw-d3{0%{opacity:0}66%{opacity:1}}
 .cw-n{margin:4px 0;font-size:12px;opacity:.7;text-align:center}
 .cw-c{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:4px 0 0 13px}
-.cw .cw-c button{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;text-align:left}
+.cw .cw-c button,.cw .cw-c a,.cw .cw-m a{color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;text-align:left}
 .cw-f{display:flex;align-items:flex-end;gap:8px;padding:10px 10px 10px 16px;border-top:1px solid var(--ln)}
 .cw-f textarea{flex:1;resize:none;border:0;background:none;color:inherit;font:inherit;font-size:16px;line-height:1.4;max-height:120px;padding:8px 0;outline:0}
 .cw-f textarea::placeholder{color:inherit;opacity:.5}

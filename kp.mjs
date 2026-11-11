@@ -97,7 +97,7 @@ const q = {
   vUpd: db.prepare('UPDATE v SET b=?, lb=COALESCE(?, lb), cp=cp+?, pr=pr+?, cl=cl+? WHERE id=?'),
   evAdd: db.prepare('INSERT INTO ev VALUES(?,?,1) ON CONFLICT(d, k) DO UPDATE SET n=n+1'),
   evSum: db.prepare('SELECT k, SUM(n) n FROM ev WHERE d>=? GROUP BY k'),
-  sKp: db.prepare('SELECT id, svc, a, price, ts, vid, ref, src, agr, cht FROM kp WHERE ts>=? AND st>0'),
+  sKp: db.prepare('SELECT id, svc, a, e, price, ts, vid, ref, src, agr, cht FROM kp WHERE ts>=? AND st>0'),
   sV: db.prepare('SELECT v.kp, v.vid, v.b, v.lb, v.cl, kp.vid cv FROM v JOIN kp ON kp.id=v.kp WHERE kp.ts>=? ORDER BY v.id'),
   lastV: db.prepare('SELECT id, last FROM v WHERE kp=? AND vid=? ORDER BY id DESC LIMIT 1'),
   prevV: db.prepare('SELECT last, lb FROM v WHERE kp=? ORDER BY id DESC LIMIT 1'),
@@ -241,7 +241,7 @@ async function signalNew(id) {
   const det = r.svc === 'site' ? [indOf(a), `${label(SCALE, a.scale)} чел.`, a.type === 'landing' ? '' : `${c.pages} стр.`, c.own ? 'свой код' : 'Tilda'] : [label(REGIONS, a.reg), indOf(a)];
   signal([`🆕 КП №${r.id} · ${r.svc === 'site' ? label(TYPES, a.type) : 'Директ'} · ${rub(r.price)}`, det.filter(Boolean).join(' · '),
     a.url ? `Сайт: ${a.url}` : '', `Устройство: ${device(r.ua)}`, geoText(g), `Откуда: ${srcText(s) || src(r.ref)}`, pathText(s, r.ts) && `Путь: ${pathText(s, r.ts)}`,
-    rp.length ? `Повторный клиент: ${rp.join(', ')}` : '', rival(r, g, []).length ? `⚠️ Похож на конкурента: ${rival(r, g, []).join(', ')}` : '',
+    parse(r.e).bot ? 'Создано роботом в чате' : '', rp.length ? `Повторный клиент: ${rp.join(', ')}` : '', rival(r, g, []).length ? `⚠️ Похож на конкурента: ${rival(r, g, []).join(', ')}` : '',
     cases.length ? `Кейсы в КП: ${cases.map((x) => x[0]).join(', ')}` : ''].filter(Boolean).join('\n'), r.id);
 }
 // Без ИИ: каждый раздел карты = 1 шаблон, остальное однотипное
@@ -371,6 +371,23 @@ function validate(b) {
   a.url = str(b.url, 300);
   return { svc, a };
 }
+// Создание КП: анкета на сайте или робот в чате (мост). o: vid, ip, ua, ref, src, e
+function make({ svc, a }, o) {
+  const t = randomBytes(24).toString('base64url'), e = o.e || {};
+  const id = Number(q.add.run(t, svc, JSON.stringify(a), Date.now(), o.vid, o.ip, o.ua, o.ref, randomUUID(), JSON.stringify(o.src)).lastInsertRowid);
+  if (o.e) q.setE.run(JSON.stringify(e), id);
+  const site = svc === 'site' && a.url && a.type !== 'landing';
+  const ai = svc === 'site' && (a.wish || site || (a.ind === 'other' && a.indText));
+  if (!ai) { finish(id); return { t, id }; }
+  setTimeout(() => q.byId.get(id)?.st === 0 && finish(id), AI_WAIT).unref?.(); // страховка, если мост молчит
+  (async () => {
+    if (site) { e.site = await analyze(a.url).catch(() => ({ src: 'none' })); q.setE.run(JSON.stringify(e), id); }
+    if (!a.wish && !(a.ind === 'other' && a.indText) && !e.site?.total) return finish(id);
+    const own = (a.type === 'shop' && ['g3', 'g4'].includes(a.goods)) || a.feat.some((f) => FEAT[f][1] === 2);
+    enqueue('ai', id, { type: label(TYPES, a.type), platform: own ? 'свой код' : 'Tilda', ind: a.ind === 'other' ? a.indText : label(INDUSTRIES, a.ind), needGroup: a.ind === 'other' && !!a.indText, wish: a.wish, feat: a.feat.map((f) => label(FEATURES, f)), site: e.site?.total ? { src: e.site.src, total: e.site.total, text: e.site.text } : null });
+  })().catch(console.error);
+  return { t, id, wait: site ? 'pages' : 'wish' };
+}
 async function create(req, res) {
   const ip = ipOf(req);
   if (!sameOrigin(req)) return json(res, 403, {});
@@ -378,19 +395,23 @@ async function create(req, res) {
   const v = validate(b);
   if (!v || !(Number(b.ms) >= 3000)) return json(res, 400, {});
   if (!limit(`kc${ip}`, 10, 36e5) || !limit('kcall', 300, 36e5)) return json(res, 429, {});
-  const t = randomBytes(24).toString('base64url'), { svc, a } = v;
-  const id = Number(q.add.run(t, svc, JSON.stringify(a), Date.now(), str(b.vid, 36), ip, str(req.headers['user-agent'], 300), str(b.ref, 300), randomUUID(), JSON.stringify(srcIn(b.src))).lastInsertRowid);
-  const site = svc === 'site' && a.url && a.type !== 'landing';
-  const ai = svc === 'site' && (a.wish || site || (a.ind === 'other' && a.indText));
-  if (!ai) { finish(id); return json(res, 200, { t }); }
-  json(res, 200, { t, wait: site ? 'pages' : 'wish' });
-  setTimeout(() => q.byId.get(id)?.st === 0 && finish(id), AI_WAIT).unref?.(); // страховка, если мост молчит
-  const e = {};
-  if (site) { e.site = await analyze(a.url).catch(() => ({ src: 'none' })); q.setE.run(JSON.stringify(e), id); }
-  if (!a.wish && !(a.ind === 'other' && a.indText) && !e.site?.total) return finish(id);
-  const own = (a.type === 'shop' && ['g3', 'g4'].includes(a.goods)) || a.feat.some((f) => FEAT[f][1] === 2);
-  enqueue('ai', id, { type: label(TYPES, a.type), platform: own ? 'свой код' : 'Tilda', ind: a.ind === 'other' ? a.indText : label(INDUSTRIES, a.ind), needGroup: a.ind === 'other' && !!a.indText, wish: a.wish, feat: a.feat.map((f) => label(FEATURES, f)), site: e.site?.total ? { src: e.site.src, total: e.site.total, text: e.site.text } : null });
+  const r = make(v, { vid: str(b.vid, 36), ip, ua: str(req.headers['user-agent'], 300), ref: str(b.ref, 300), src: srcIn(b.src) });
+  json(res, 200, { t: r.t, ...(r.wait && { wait: r.wait }) });
 }
+// Робот в чате создаёт КП по ответам посетителя (мост, tool create_kp). Источник и браузер — из первого сообщения диалога.
+const FORM = { type: TYPES, ind: INDUSTRIES, scale: SCALE, goods: GOODS, feat: FEATURES, fill: FILL, brand: BRAND, reg: REGIONS };
+async function bridgeCreate(req, res) {
+  let b; try { b = await body(req); } catch { return json(res, 400, {}); }
+  const sid = str(b.sid, 36), m = hooks.first?.(sid), v = validate(b);
+  if (!m) return json(res, 404, {});
+  if (!v) return json(res, 200, { error: 'Не хватает ответов или значение не из списка. Проверь поля и уточни у посетителя недостающее.' });
+  if (!limit(`kb${sid}`, 3, 864e5) || !limit('kcall', 300, 36e5)) return json(res, 200, { error: 'Лимит: в этом диалоге уже создано 3 КП. Предложи обсудить детали лично.' });
+  const r = make(v, { vid: VID.test(m.vid || '') ? m.vid : '', ip: m.ip || '', ua: m.ua || '', ref: 'чат', src: m.s || null, e: { bot: sid } });
+  const k = q.byId.get(r.id);
+  json(res, 200, { url: `${SITE}/kp/${r.t}`, n: r.id, ...(k.st === 1 ? { price: rub(k.price) + (v.svc === 'direct' ? ' в месяц' : '') } : { note: 'Цена считается, будет на странице КП через минуту.' }) });
+}
+// Портрет посетителя для первого сообщения в чате (chat.mjs → тема Telegram)
+hooks.who = (x, ts) => { const s = srcIn(x); return s ? { s, from: srcText(s), path: pathText(s, ts) } : {}; };
 
 /* ---------- страница КП ---------- */
 let TPL;
@@ -588,7 +609,8 @@ hooks.sids = () => q.sids.all().map((x) => x.sid);
 hooks.msg = (id, text) => { q.cht.run(Date.now(), id); up(id, 2); log(id, null, 'msg', `написал в чат: «${text.slice(0, 120)}»`); };
 // События анкеты по дням (Москва): form, start, soft, recalc, step:<вопрос>
 const dayMsk = (ts = Date.now()) => new Date(ts + 3 * 36e5).toISOString().slice(0, 10);
-const EV = /^(form|start|soft|step:(svc|type|reg|ind|indText|scale|goods|feat|wish|fill|brand|url))$/;
+const EV = /^(form|start|soft|step:(svc|type|reg|ind|indText|scale|goods|feat|wish|fill|brand|url)|tip[os]?:[a-z]{2,8})$/; // tip — приглашение в чат: показано, tipo — открыто, tips — закрыто
+hooks.ev = (k) => q.evAdd.run(dayMsk(), k); // tipm — написали после приглашения (chat.mjs)
 async function ev(req, res) {
   if (!sameOrigin(req)) return json(res, 403, {});
   let b; try { b = await body(req); } catch { return json(res, 400, {}); }
@@ -611,7 +633,7 @@ function stats(days) {
   const group = (f) => { const m = {}; for (const k of ks) { const x = (m[f(k)] ||= [0, 0, 0, 0]); x[0]++; x[1] += k.ret; x[2] += k.cl > 0; x[3] += k.price || 0; } return Object.entries(m).sort((a, b) => b[1][0] - a[1][0]).map(([g, x]) => [g, x[0], x[1], x[2], Math.round(x[3] / x[0])]); };
   const sum = (p) => (p < 15e4 ? 'до 150 тыс.' : p < 3e5 ? '150–300 тыс.' : p < 6e5 ? '300–600 тыс.' : p < 1e6 ? '600 тыс. – 1 млн' : 'от 1 млн');
   return {
-    ev, created: ks.length, ret: ks.filter((k) => k.ret).length, contact: ks.filter((k) => k.cl).length, chat: ks.filter((k) => k.cht).length, agree: ks.filter((k) => k.agr).length, nv,
+    ev, created: ks.length, ret: ks.filter((k) => k.ret).length, contact: ks.filter((k) => k.cl).length, chat: ks.filter((k) => k.cht).length, agree: ks.filter((k) => k.agr).length, bot: ks.filter((k) => parse(k.e).bot).length, nv,
     att: Object.fromEntries(BLOCKS.map((b) => [b, nv ? Math.round((att[b] || 0) / nv) : 0])), last,
     type: group((k) => (k.svc === 'site' ? label(TYPES, k.a.type) : 'Директ')), ind: group((k) => indOf(k.a)),
     sum: group((k) => (k.svc === 'site' ? sum(k.price) : 'Директ')), ref: group((k) => chan(parse(k.src)) || src(k.ref)), camp: group((k) => parse(k.src)?.utm?.campaign || '—'),
@@ -676,7 +698,7 @@ async function adminApi(req, res, p) {
   }
   const x = q.byId.get(id), vs = q.visits.all(id), ips = [...new Set([x.ip, ...vs.map((v) => v.ip)])].filter(Boolean);
   const G = Object.fromEntries(await Promise.all(ips.slice(0, 10).map(async (i) => [i, geoText(await geo(i))])));
-  const srcO = parse(x.src), who = { src: srcText(srcO) || src(x.ref), path: pathText(srcO, x.ts), geo: G[x.ip] || '', repeat: repeat(x), rival: rival(x, x.ip ? await geo(x.ip) : {}, vs), roi: parse(x.roi), doubt: parse(x.doubt) };
+  const srcO = parse(x.src), who = { src: (srcText(srcO) || src(x.ref)) + (parse(x.e).bot ? ' · создано роботом в чате' : ''), path: pathText(srcO, x.ts), geo: G[x.ip] || '', repeat: repeat(x), rival: rival(x, x.ip ? await geo(x.ip) : {}, vs), roi: parse(x.roi), doubt: parse(x.doubt) };
   json(res, 200, { ...x, who, G, a: parse(x.a), e: parse(x.e), c: parse(x.c), visits: vs.map((v) => ({ ...v, dev: device(v.ua) })), fw: q.fwOf.all(id), acts: q.acts.all(id), sh: q.shs.all(id).map((z) => ({ ...z, m: SHM[z.m] })), html: x.st === 1 ? render(x, Date.now()) : '', PH, labels: { svc: label(SERVICES, x.svc) } });
 }
 
@@ -697,6 +719,8 @@ export function kp(req, res, url, ctx) {
     if (!authed(req)) return json(res, 401, {});
     if (p === 'bridge/pull' && req.method === 'GET') return pull(req, res);
     if (p === 'bridge/done' && req.method === 'POST') return bridgeDone(req, res);
+    if (p === 'bridge/create' && req.method === 'POST') return bridgeCreate(req, res);
+    if (p === 'bridge/form' && req.method === 'GET') return json(res, 200, FORM);
     if (p === 'bridge/ok' && req.method === 'POST') return body(req).then((b) => { q.ok.run(Number(b.id) || 0); json(res, 200, {}); }, () => json(res, 400, {}));
   }
   json(res, 404, {});

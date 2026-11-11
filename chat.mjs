@@ -15,11 +15,14 @@ const q = {
   add: db.prepare('INSERT INTO m(sid,d,t,ts,meta) VALUES(?,?,?,?,?)'),
   bySid: db.prepare('SELECT id i, d, t FROM m WHERE sid=? AND id>? ORDER BY id LIMIT 300'),
   has: db.prepare('SELECT 1 FROM m WHERE sid=? LIMIT 1'),
+  first: db.prepare('SELECT meta, ts FROM m WHERE sid=? ORDER BY id LIMIT 1'),
   pull: db.prepare('SELECT id, sid, t, meta FROM m WHERE d=0 AND id>? ORDER BY id LIMIT 50'),
   gc: db.prepare('DELETE FROM m WHERE ts<? AND sid NOT IN (SELECT value FROM json_each(?))'),
 };
 // Чаты КП (kp.mjs): kp(sid) → номер КП, msg(номер, текст) — сообщение посетителя, sids() — не удалять через 30 дней
+// who(src, ts) — портрет посетителя, ev(ключ) — счётчик; first(sid) — данные первого сообщения диалога
 export const hooks = {};
+hooks.first = (sid) => { const r = SID.test(sid) && q.first.get(sid); try { return r ? JSON.parse(r.meta || '{}') : null; } catch { return {}; } };
 setInterval(() => q.gc.run(Date.now() - KEEP, JSON.stringify(hooks.sids?.() || [])), 36e5).unref();
 
 // Лимиты: ключ → [счётчик, сброс]
@@ -99,8 +102,12 @@ async function send(req, res) {
   const fresh = !q.has.get(sid);
   if (!limit(`i${ip}`, 20, 6e5) || !limit(`s${sid}`, 30, 6e5) || !limit('all', 300, 6e5) || (fresh && !limit(`n${ip}`, 5, 36e5))) return json(res, 429, {});
   const meta = { page: str(b.page, 200) };
-  if (b.chip === 1) meta.chip = 1; // нажата подсказка
-  if (fresh) Object.assign(meta, { ref: str(b.ref, 200), ua: str(req.headers['user-agent'], 200) });
+  if (b.chip === 1 || b.chip === 2) meta.chip = b.chip; // нажата подсказка: 1 — робот просит описать задачу, 2 — отвечает по сути
+  if (fresh) {
+    const tip = /^[a-z]{2,8}$/.test(b.tip) ? b.tip : '';
+    Object.assign(meta, { ref: str(b.ref, 200), ua: str(req.headers['user-agent'], 200), ip, vid: str(b.vid, 36), ...(tip && { tip }), ...hooks.who?.(b.src, Date.now()) });
+    if (tip) hooks.ev?.(`tipm:${tip}`);
+  }
   const kp = hooks.kp?.(sid);
   if (kp) { meta.kp = kp; hooks.msg?.(kp, text); }
   json(res, 200, { id: insert(sid, 0, text, meta) });
@@ -112,7 +119,8 @@ function pull(req, res, url) {
   const done = () => {
     const rows = q.pull.all(after);
     if (!rows.length) return false;
-    waiters.delete(done); clearTimeout(timer); json(res, 200, rows); return true;
+    waiters.delete(done); clearTimeout(timer);
+    json(res, 200, rows.map((r) => ({ ...r, meta: r.meta && JSON.stringify({ ...JSON.parse(r.meta), ip: undefined, vid: undefined, s: undefined }) }))); return true; // IP и ID браузера мосту не отдаём
   };
   if (done()) return;
   timer = setTimeout(() => { waiters.delete(done); json(res, 200, []); }, 25e3);
