@@ -8,12 +8,12 @@ const KP = document.getElementById('kp')?.dataset.sid || ''; // страница
 // Подсказки: [текст, вид]. Вид: 1 — робот попросит описать задачу, 2 — робот отвечает по сути, строка — ссылка
 type Chip = [string, 1 | 2 | string];
 const soft = /^\/services\/(development|custom-software)/.test(p); // программы и боты: КП не считается
-const KPL: Chip = ['Получить КП за 2 минуты', '/kp/new'], CALC: Chip[] = [['Посчитать здесь, в чате', 2], ['Заполнить анкету самому', '/kp/new']];
+const KPL: Chip = ['Получить КП за 2 минуты', '/kp/new'], CALC: Chip[] = [['Посчитать в чате', 2], ['Заполнить анкету', '/kp/new']];
 const CHIPS: Chip[] = KP ? [['Вопрос по смете', 1], ['Когда можно начать?', 1]]
   : p.startsWith('/services/paid-search') ? [['Сколько стоит реклама в Яндексе?', 1], ['Нужен анализ рекламы в Яндексе', 1], KPL]
   : p.startsWith('/services/development') ? [['Сколько стоит бот?', 1], ['Перенести телеграм-бота в MAX', 1]]
   : p.startsWith('/services/custom-software') ? [['У меня идея, хочу знать цену', 1], ['Обсудить автоматизацию', 1]]
-  : p === '/kp/new' ? [['Помогите выбрать ответ', 2], ['Посчитать здесь, в чате', 2]]
+  : p === '/kp/new' ? [['Помогите выбрать ответ', 2], ['Посчитать в чате', 2]]
   : [['Обсудить создание сайта', 1], ['Реклама в Яндексе', 1], ['Разработать бота', 1], ['Обсудить автоматизацию', 1], KPL];
 const HI = 'Здравствуйте! Я Сергей, обычно отвечаю в течение минуты-двух. Чем могу помочь?';
 const NOTE = KP ? 'Ответ придёт сюда. Можно закрыть страницу — переписка сохранится на странице КП.' : 'Ответ придёт сюда. Можно закрыть страницу — переписка сохранится в этом окне на 30 дней.';
@@ -44,7 +44,7 @@ if (ss('chat-ref') === null) {
 document.querySelector('.lch')?.remove(); // старая кнопка-Telegram на лендингах
 const root = document.createElement('div');
 root.className = 'cw' + (getComputedStyle(document.documentElement).getPropertyValue('--b').trim() ? ' cw--dev' : '');
-root.innerHTML = `<div class="cw-tip" hidden><button type="button" class="cw-tt">Есть вопрос? Отвечу здесь</button><button type="button" class="cw-x" aria-label="Закрыть">${svg(X, 20)}</button></div>`
+root.innerHTML = `<div class="cw-tip" role="status" hidden><img class="cw-ta" src="/chat/sergey.webp" width="40" height="40" alt=""><div class="cw-tb"><button type="button" class="cw-tt"><b>Сергей</b><span></span></button><div class="cw-tc"></div></div><button type="button" class="cw-x" aria-label="Закрыть">${svg(X, 16)}</button></div>`
   + `<section class="cw-box" role="dialog" aria-label="Чат с Сергеем" hidden><header class="cw-h"><span class="cw-av"><img src="/chat/sergey.webp" width="40" height="40" alt="">${BOT}</span><b>Сергей</b><button type="button" class="cw-x" aria-label="Закрыть чат">${svg(X)}</button></header>`
   + `<div class="cw-l" aria-live="polite"></div><form class="cw-f"><textarea rows="1" maxlength="1000" placeholder="Напишите сообщение" aria-label="Сообщение"></textarea><button type="submit" aria-label="Отправить">${svg('M5 12h14M13 6l6 6-6 6', 20)}</button></form></section>`
   + `<button type="button" class="cw-b" aria-label="Открыть чат" aria-expanded="false">${svg(BUBBLE)}${svg(X)}<i hidden></i></button>`;
@@ -178,7 +178,13 @@ vv?.addEventListener('resize', fit); vv?.addEventListener('scroll', fit);
 
 btn.onclick = () => toggle();
 root.querySelectorAll<HTMLElement>('.cw-x').forEach((b) => (b.onclick = () => (b.closest('.cw-tip') ? ((tip.hidden = true), ss('chat-tip', '1'), ev(`tips:${cur?.[0]}`)) : toggle(false))));
-$('.cw-tt').onclick = () => { if (cur) { via = cur[0]; greet(cur[3], cur[4]); ev(`tipo:${via}`); window.goal?.('chat_tip_open'); } toggle(true); };
+// Клик по приглашению: чат с приветствием этого приглашения; кнопка-ответ — сразу отправляет его (ссылка — переход)
+const open2 = (c?: Chip) => {
+  if (cur) { via = cur[0]; greet(cur[3], cur[4]); ev(`tipo:${via}`); window.goal?.('chat_tip_open'); }
+  if (c && typeof c[1] === 'string') { window.goal?.('chat_kp'); location.href = c[1]; return; }
+  toggle(true); if (c) post(c[0], c[1] as number);
+};
+$('.cw-tt').onclick = () => open2();
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !box.hidden) toggle(false); });
 form.onsubmit = (e) => { e.preventDefault(); const t = ta.value; ta.value = ''; grow(); post(t); };
 const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; };
@@ -224,7 +230,14 @@ function invite() {
   if (!shown || KP || s.sid || ss('chat-tip') || !box.hidden || !tip.hidden || done.length >= 2 || sec - last2 < 60) return;
   const r = RULES.find((x) => !done.includes(x[0]) && x[1]());
   if (!r) return;
-  cur = r; last2 = sec; $('.cw-tt').textContent = r[2]; tip.hidden = false;
+  cur = r; last2 = sec;
+  // Сначала «печатает», через 1,2 с — текст и кнопки-ответы (не больше двух)
+  const t = $('.cw-tt span'), cs = $('.cw-tc'), rm = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  t.innerHTML = '<i class="cw-dots"><i>.</i><i>.</i><i>.</i></i>'; cs.replaceChildren(); tip.hidden = false; tip.classList.remove('cw-tip--in');
+  setTimeout(() => {
+    t.textContent = r[2]; tip.classList.add('cw-tip--in');
+    cs.replaceChildren(...(r[4] === CHIPS ? [] : r[4]).slice(0, 2).map((c, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = i ? '' : 'cw-t1'; b.textContent = c[0]; b.onclick = () => open2(c); return b; }));
+  }, rm ? 0 : 1200);
   ss('chat-tips', [...done, r[0]].join(',')); ev(`tip:${r[0]}`); window.goal?.('chat_tip');
 }
 let last2 = -60;
