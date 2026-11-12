@@ -1,19 +1,19 @@
 // Онлайн-чат: сообщения уходят в Telegram Сергея (мост на Hetzner), ответы приходят сюда по SSE. Сервер: chat.mjs.
 import '../styles/chat.css';
 
-type M = { i: number; d: number; t: string }; // d: 0 посетитель, 1 Сергей, 2 ИИ
+type M = { i: number; d: number; t: string }; // d: 0 посетитель, 1 Сергей, 2 ИИ, 3 автоответ от имени Сергея
 const API = '/api/chat/';
 const p = location.pathname;
 const KP = document.getElementById('kp')?.dataset.sid || ''; // страница КП: общий чат этого КП
 // Подсказки: [текст, вид]. Вид: 1 — робот попросит описать задачу, 2 — робот отвечает по сути, строка — ссылка
-type Chip = [string, 1 | 2 | string];
+type Chip = [string, 1 | 2 | 3 | string];
 const soft = /^\/services\/(development|custom-software)/.test(p); // программы и боты: КП не считается
-const KPL: Chip = ['Получить КП за 2 минуты', '/kp/new'], CALC: Chip[] = [['Посчитать в чате', 2], ['Заполнить анкету', '/kp/new']];
+const KPL: Chip = ['Получить КП за 2 минуты', '/kp/new'], CALC: Chip[] = [['Посчитать в чате', 3], ['Заполнить анкету', '/kp/new']];
 const CHIPS: Chip[] = KP ? [['Вопрос по смете', 1], ['Когда можно начать?', 1]]
   : p.startsWith('/services/paid-search') ? [['Сколько стоит реклама в Яндексе?', 1], ['Нужен анализ рекламы в Яндексе', 1], KPL]
   : p.startsWith('/services/development') ? [['Сколько стоит бот?', 1], ['Перенести телеграм-бота в MAX', 1]]
   : p.startsWith('/services/custom-software') ? [['У меня идея, хочу знать цену', 1], ['Обсудить автоматизацию', 1]]
-  : p === '/kp/new' ? [['Помогите выбрать ответ', 2], ['Посчитать в чате', 2]]
+  : p === '/kp/new' ? [['Помогите выбрать ответ', 2], ['Посчитать в чате', 3]]
   : [['Обсудить создание сайта', 1], ['Реклама в Яндексе', 1], ['Разработать бота', 1], ['Обсудить автоматизацию', 1], KPL];
 const HI = 'Здравствуйте! Я Сергей, обычно отвечаю в течение минуты-двух. Чем могу помочь?';
 const NOTE = KP ? 'Ответ придёт сюда. Можно закрыть страницу — переписка сохранится на странице КП.' : 'Ответ придёт сюда. Можно закрыть страницу — переписка сохранится в этом окне на 30 дней.';
@@ -114,6 +114,7 @@ function connect() {
   es.addEventListener('typing', onType);
   es.onmessage = (e) => {
     const m: M = JSON.parse(e.data);
+    if (m.d === 3) m.d = 1;
     last = Math.max(last, m.i);
     if (msgs.has(m.i)) return;
     if (m.d === 0) {

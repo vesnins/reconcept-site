@@ -34,6 +34,7 @@ export const limit = (k, n, ms) => {
 };
 setInterval(() => { const now = Date.now(); for (const [k, h] of hits) if (h[1] < now) hits.delete(k); for (const [k, t] of typers) if (t[1] < now) typers.delete(k); }, 6e5).unref();
 
+const AUTO = 'Пожалуйста, опишите коротко свою задачу. По ней я пойму, чем мы можем вам помочь.';
 const SID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 export const str = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
 export const ipOf = (req) => String(req.headers['x-forwarded-for'] || '').split(',').pop().trim() || req.socket.remoteAddress || '';
@@ -102,7 +103,7 @@ async function send(req, res) {
   const fresh = !q.has.get(sid);
   if (!limit(`i${ip}`, 20, 6e5) || !limit(`s${sid}`, 30, 6e5) || !limit('all', 300, 6e5) || (fresh && !limit(`n${ip}`, 5, 36e5))) return json(res, 429, {});
   const meta = { page: str(b.page, 200) };
-  if (b.chip === 1 || b.chip === 2) meta.chip = b.chip; // нажата подсказка: 1 — робот просит описать задачу, 2 — отвечает по сути
+  if ([1, 2, 3].includes(b.chip)) meta.chip = b.chip; // нажата подсказка: 1 — робот просит описать задачу, 2 — отвечает по сути, 3 — «Посчитать в чате»
   if (fresh) {
     const tip = /^[a-z]{2,8}$/.test(b.tip) ? b.tip : '';
     Object.assign(meta, { ref: str(b.ref, 200), ua: str(req.headers['user-agent'], 200), ip, vid: str(b.vid, 36), ...(tip && { tip }), ...hooks.who?.(b.src, Date.now()) });
@@ -111,6 +112,7 @@ async function send(req, res) {
   const kp = hooks.kp?.(sid);
   if (kp) { meta.kp = kp; hooks.msg?.(kp, text); }
   json(res, 200, { id: insert(sid, 0, text, meta) });
+  if (meta.chip === 3) insert(sid, 3, AUTO); // автоответ от имени Сергея (d=3: на сайте как Сергей, робот его не учитывает)
 }
 
 function pull(req, res, url) {
