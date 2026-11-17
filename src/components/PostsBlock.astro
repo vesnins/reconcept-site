@@ -1,0 +1,12 @@
+---
+// Блок «Статьи по теме» (B8): заголовок + «все статьи» + сетка мини-превью. На мобильном — лента со свайпом.
+import type { Post } from '../data/blog';
+import PostPrev from './PostPrev.astro';
+interface Props { posts: Post[]; h?: string; class?: string }
+const { posts, h = 'Статьи по теме', class: cls } = Astro.props;
+---
+{posts.length > 0 && <section class:list={['pb', cls]} style={`--n:${posts.length}`}>
+  <div class="pb__head"><h2 class="pb__h">{h}</h2><a class="pill pb__all" href="/blog">все статьи<i aria-hidden="true"></i></a></div>
+  <div class="pb__grid">{posts.map((p) => <PostPrev post={p} v="mini" />)}</div>
+</section>}
+<script>import '../scripts/blog-ill';</script>

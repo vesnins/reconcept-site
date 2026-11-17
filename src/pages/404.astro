@@ -1,4 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import PostsBlock from '../components/PostsBlock.astro';
+import { pinned } from '../data/blog';
 ---
-<Base title="Страница не найдена — Reconcept" noindex><div class="container"><h1>404</h1><p><a href="/">На главную</a></p></div></Base>
+<Base title="Страница не найдена — Reconcept" noindex><div class="container"><h1>404</h1><p><a href="/">На главную</a></p></div><PostsBlock posts={pinned(3)} h="Почитайте блог" /></Base>

@@ -1,0 +1,13 @@
+---
+// Превью поста вне ленты блога (B8). v: mini — карточка (иллюстрация + заголовок + тег), link — строка, inline — «Читайте также» в тексте.
+// Цвета берутся из --dark/--gray/--line: на сайте — сайта, внутри блога — блога.
+import { BLOG, type Post } from '../data/blog';
+import { ill } from '../data/blog-ill';
+import '../styles/post-prev.css';
+interface Props { post: Post; v: 'mini' | 'link' | 'inline'; h?: 'h2' | 'h3' }
+const { post, v, h: H = 'h3' } = Astro.props;
+const href = `/blog/${post.slug}`, t = (post.card ?? post.title).replace(/-/g, '\u2011'), A = '<i class="pp__arw" aria-hidden="true"></i>';
+---
+{v === 'mini' && <a class="pp pp--mini" href={href}><div class="bl-ill" set:html={ill(post.ill)} /><div class="pp__txt"><H class="pp__ttl">{t}</H><div class="pp__foot"><span class="pp__tag">{BLOG.category}</span><Fragment set:html={A} /></div></div></a>}
+{v === 'link' && <a class="pp pp--link" href={href}><span>{t}</span><Fragment set:html={A} /></a>}
+{v === 'inline' && <a class="pp pp--inline" href={href}><span class="pp__lbl">Читайте также</span><span class="pp__ttl">{post.title.replace(/-/g, '\u2011')}</span><Fragment set:html={A} /></a>}

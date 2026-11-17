@@ -1,5 +1,5 @@
 /* Блог (К13): монохром, линии 0.5px (box-shadow: border Chrome округляет до 1px), прямые углы. Размеры ленты — доли макета 1116 (--u). */
-@font-face{font-family:"Departure Mono";src:url(/fonts/DepartureMono.woff2) format("woff2");font-display:swap}
+@import "./blog-ill.css";
 /* Страницы блога: свои цвета для шапки, подвала, cookie (файл подключается только в блоге) */
 :root{--dark:#4f483e;--gray:#8a7d6b;--bg:#ece4d9;--line:#8a7d6b}
 .hdr__logo,.hdr__nav a:hover,.ftr__mail,.ftr__info{color:var(--dark)}
@@ -22,26 +22,6 @@
 .bc:hover .bl-arw{transform:rotate(45deg)}
 .bl-btn{display:flex;justify-content:space-between;align-items:center;height:48px;padding:0 14px;box-shadow:inset 0 0 0 var(--hl) var(--ink);font-weight:500}
 .bl-btn .bl-arw{width:20px;height:20px}
-
-/* Иллюстрации: точечная сетка 1px/шаг 2px; покой = финальный кадр; прорисовка по ховеру и при появлении (.play) */
-.bl-ill{position:relative;overflow:hidden;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'%3E%3Crect width='1' height='1' fill='%238a7d6b' fill-opacity='.25'/%3E%3C/svg%3E")}
-.bl-ill :is(svg,.sp,canvas){position:absolute;inset:0;width:100%;height:100%}
-.bl-ill .sp{object-fit:cover;object-position:59% 47%;visibility:hidden}
-.bl-ill .sp[src$="-cam.svg"]{object-position:50% 30%}
-.bl-ill .sp[src$="/halo-oglasi.svg"]{object-position:50% 46%}
-.bl-ill .sp[src$="/halo-oglasi-in.svg"]{object-position:50% 38%}
-.bl-ill .sp[src$="/ai-news-rewriter.svg"]{object-position:46% 50%}
-.bl-ill .sp[src$="/ai-news-rewriter-in.svg"]{object-position:50% 30%}
-.bl-ill .sp[src$="/mentor.svg"]{object-position:50% 22%}
-.bl-ill .sp[src$="/author.svg"]{object-position:50% 30%}
-.bl-ill .ln{fill:none;stroke:var(--ink);stroke-width:calc(.6 / var(--k,1));stroke-dasharray:1 1;stroke-dashoffset:0}
-.bl-ill .ln.b{stroke-width:calc(1.2 / var(--k,1))}
-.bl-ill .fl{fill:var(--ink)}
-.bl-ill .lb{fill:var(--ink);font:7px var(--mono);letter-spacing:.04em}
-@keyframes bl-draw{from{stroke-dashoffset:1}}
-.bc:hover .ln,.play .ln{animation:bl-draw 1.6s cubic-bezier(.4,0,.2,1) both}
-.bc:hover .ln:nth-of-type(2n),.play .ln:nth-of-type(2n){animation-delay:.15s}
-.bc:hover .ln:nth-of-type(3n),.play .ln:nth-of-type(3n){animation-delay:.3s}
 
 /* Окно поста */
 html:has(.ov:not([hidden])){overflow:hidden}

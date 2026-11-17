@@ -1,5 +1,8 @@
 ---
 import { SITE } from '../lib/site';
+import { pinned } from '../data/blog';
+import PostPrev from './PostPrev.astro';
+const posts = pinned();
 const year = new Date().getFullYear();
 const chats = [['чат telegram', SITE.telegram, 'click_telegram'], ['чат whatsapp', SITE.whatsapp, 'click_whatsapp'], ['чат max', SITE.max, 'click_max']];
 ---
@@ -11,10 +14,13 @@ const chats = [['чат telegram', SITE.telegram, 'click_telegram'], ['чат wh
         {chats.map(([t, h, g]) => <a class="pill" href={h} target="_blank" rel="noopener" data-goal={g}>{t}</a>)}
       </div>
     </div>
+    <div class="ftr__cols">
     <div class="ftr__info">
       <p class="ftr__lead">Свяжитесь с нами по любым контактам для консультации. Ответим на все ваши вопросы и подберём оптимальное решение.</p>
       <p>Студия «Реконцепт»: ИП&nbsp;Аманова АС, ИНН {SITE.inn}, ОГРН {SITE.ogrnip}<br>Адрес: г.&nbsp;Волгоград, ул.&nbsp;Двинская, 18</p>
       <p>Читайте наш <a href="https://t.me/reconcept" target="_blank" rel="noopener">Telegram</a></p>
+    </div>
+      {posts.length > 0 && <nav class="ftr__blog" aria-label="Полезное"><p class="ftr__bh">Полезное</p><ul>{posts.map((p) => <li><PostPrev post={p} v="link" /></li>)}</ul><a class="ftr__ball" href="/blog">Все статьи</a></nav>}
     </div>
   </div>
   <div class="ftr__bottom">
@@ -30,17 +36,23 @@ const chats = [['чат telegram', SITE.telegram, 'click_telegram'], ['чат wh
 .ftr__btns{display:flex;align-items:center;gap:10px}
 .ftr__info{display:flex;flex-direction:column;gap:60px;width:calc(50% - 10px);padding-right:40px;color:#000;font-size:16px;line-height:1.8}
 .ftr__info a{color:var(--dark);border-bottom:1px solid var(--dark)}
+.ftr__cols{display:flex;gap:20px}
+.ftr__blog{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:20px;font-size:16px;line-height:1.55}
+.ftr__bh{color:var(--gray);font-size:14px}
+.ftr__blog ul{display:grid;gap:12px}
+.ftr__ball{color:var(--gray);border-bottom:1px solid currentColor}
 .ftr__bottom{display:flex;justify-content:flex-end;align-items:center;gap:20px;min-height:29px;padding:60px 20px;color:var(--gray);font-size:14px;line-height:1.6}
 @media (max-width:1199px){
   .ftr__top{gap:60px}
   .ftr__info{width:100%;padding-right:0}
   .ftr__lead{display:none}
+  .ftr__cols{flex-direction:column;gap:60px}
 }
 @media (max-width:959px){
   .ftr__row{flex-direction:column;gap:40px}
   .ftr__mail{text-align:center}
   .ftr__btns{flex-direction:column;align-items:stretch;align-self:stretch;gap:10px}
-  .ftr__info{text-align:center}
+  .ftr__info,.ftr__blog{text-align:center;align-items:center}
   .ftr__bottom{flex-direction:column;align-items:flex-start;gap:20px}
 }
 @media (max-width:479px){.ftr__mail{font-size:28px}}

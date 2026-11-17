@@ -27,7 +27,9 @@ async function next() {
     const c = box.querySelector('canvas') ?? box.appendChild(document.createElement('canvas')), s = Math.max(w, h);
     const [px, py] = getComputedStyle(img).objectPosition.split(' ').map((v) => parseFloat(v) / 100);
     c.width = Math.round(w * k); c.height = Math.round(h * k);
-    c.getContext('2d')!.drawImage(img, (w - s) * px * k, (h - s) * py * k, s * k, s * k);
+    const x = c.getContext('2d')!, ink = getComputedStyle(box).getPropertyValue('--ink').trim();
+    x.drawImage(img, (w - s) * px * k, (h - s) * py * k, s * k, s * k);
+    if (ink) { x.globalCompositeOperation = 'source-in'; x.fillStyle = ink; x.fillRect(0, 0, c.width, c.height); } // цвет спирали = --ink (на сайте — цвета сайта)
   } catch { img.style.visibility = 'visible'; }
   idle(next);
 }

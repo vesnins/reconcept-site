@@ -1,5 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
+import PostsBlock from '../components/PostsBlock.astro';
+import { forSvc } from '../data/blog';
 
 type Card = { t: string; d: string; p?: string; href?: string; blank?: boolean };
 const groups: { h: string; cards: Card[] }[] = [
@@ -39,6 +41,7 @@ const groups: { h: string; cards: Card[] }[] = [
         </Tag>;
       })}
     </div>
+    {i === 1 && <PostsBlock class="pb--top" posts={forSvc('development')} h="Как мы пишем ботов и приложения" />}
   </>)}
 </Base>
 <style is:global>
