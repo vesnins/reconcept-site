@@ -49,8 +49,13 @@ async function show(s: string, mode: 'push' | 'replace' | 'none') {
 }
 
 function hide() { ov.hidden = true; document.title = feedTitle; sc.replaceChildren(); track(feedTitle); }
+// Пост открыт с другой страницы сайта (не из блога) — закрытие возвращает на неё.
+const fromSite = (() => {
+  try { const r = new URL(document.referrer); return r.origin === location.origin && !r.pathname.startsWith('/blog') && history.length > 1; }
+  catch { return false; }
+})();
 function close() {
-  if (history.state?.blog) history.back();
+  if (history.state?.blog || fromSite) history.back();
   else { history.replaceState(null, '', '/blog'); hide(); }
 }
 function step(dir: 1 | -1) {
