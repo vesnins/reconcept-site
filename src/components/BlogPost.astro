@@ -1,12 +1,15 @@
 ---
 // Пост внутри окна (#post). На клиенте подменяется целиком из HTML страницы /blog/slug.
-import { AUTHOR, BLOG, POSTS, authorUrl, bySlug, ruDate, type Post } from '../data/blog';
+import { AUTHOR, BLOG, POSTS, SVC, authorUrl, bySlug, ruDate, type Post } from '../data/blog';
 import { ill } from '../data/blog-ill';
 import BlogCard from './BlogCard.astro';
 interface Props { post: Post }
 const { post } = Astro.props;
 const words = JSON.stringify(post.body).replace(/<[^>]+>/g, ' ').split(/\s+/).length;
 const rel = [...post.rel, ...POSTS.map((p) => p.slug).filter((s) => s !== post.slug && !post.rel.includes(s))].map((s) => bySlug[s]);
+const sk = post.svc?.[0], svc = sk ? SVC[sk] : undefined, su = `/services/${sk}`;
+const hs = post.body.flatMap((b, i) => 'h' in b ? [i] : []), mid = svc && hs.length > 2 ? hs[Math.floor(hs.length / 2)] : -1;
+const A = '<i class="bl-arw" aria-hidden="true"></i>';
 ---
 <article class="bp" id="post" data-s={post.slug} role="dialog" aria-modal="true" aria-labelledby="bp-h">
   <header class="bp__head">
@@ -16,7 +19,7 @@ const rel = [...post.rel, ...POSTS.map((p) => p.slug).filter((s) => s !== post.s
   <div class="bl-ill bp__cover" set:html={ill(post.cover ?? post.ill)} />
   <p class="bp__meta">{post.author === AUTHOR.name ? <a href={authorUrl}>{post.author}</a> : post.author ?? 'Reconcept'} · <time datetime={post.date}>{ruDate(post.date)}</time> · {Math.max(1, Math.round(words / 180))} мин</p>
   <div class="bp__body">
-    {post.body.map((b) => 'h' in b ? <h2>{b.h}</h2>
+    {post.body.map((b, i) => 'h' in b ? <Fragment>{svc && i === mid && <aside class="bp-cta"><p>{svc.q}</p><div class="bp-cta__b"><a class="bl-btn" href={BLOG.tg} target="_blank" rel="noopener">Обсудить в Telegram<Fragment set:html={A} /></a></div></aside>}<h2>{b.h}</h2></Fragment>
       : 'lead' in b ? <p class="bp__lead" set:html={b.lead} />
       : 'ul' in b ? <ul>{b.ul.map((t) => <li set:html={t} />)}</ul>
       : 'ol' in b ? <ol>{b.ol.map((t) => <li set:html={t} />)}</ol>
@@ -24,5 +27,6 @@ const rel = [...post.rel, ...POSTS.map((p) => p.slug).filter((s) => s !== post.s
       : 'fig' in b ? <figure><div class="bl-ill io" set:html={ill(b.fig)} />{b.cap && <figcaption>{b.cap}</figcaption>}</figure>
       : <p set:html={b.p} />)}
   </div>
+  {svc && <a class="bp-svc" href={su}><span class="bp-svc__l">Услуга по теме</span><span class="bp-svc__t">{svc.t}</span><span class="bp-svc__d">{svc.d}</span><span class="bp-svc__f"><span class="bl-tag">Подробнее</span><Fragment set:html={A} /></span></a>}
   <section class="bp__rel"><h2>Раз вы уже здесь</h2><div class="bp__strip">{rel.map((p) => <BlogCard post={p} k="n" h="h3" />)}</div></section>
 </article>
