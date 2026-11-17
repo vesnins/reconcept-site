@@ -2,6 +2,7 @@
 // Пост внутри окна (#post). На клиенте подменяется целиком из HTML страницы /blog/slug.
 import { AUTHOR, BLOG, POSTS, SVC, authorUrl, bySlug, ruDate, type Post } from '../data/blog';
 import { ill } from '../data/blog-ill';
+import { SITE } from '../lib/site';
 import BlogCard from './BlogCard.astro';
 interface Props { post: Post }
 const { post } = Astro.props;
@@ -19,7 +20,7 @@ const A = '<i class="bl-arw" aria-hidden="true"></i>';
   <div class="bl-ill bp__cover" set:html={ill(post.cover ?? post.ill)} />
   <p class="bp__meta">{post.author === AUTHOR.name ? <a href={authorUrl}>{post.author}</a> : post.author ?? 'Reconcept'} · <time datetime={post.date}>{ruDate(post.date)}</time> · {Math.max(1, Math.round(words / 180))} мин</p>
   <div class="bp__body">
-    {post.body.map((b, i) => 'h' in b ? <Fragment>{svc && i === mid && <aside class="bp-cta"><p>{svc.q}</p><div class="bp-cta__b"><a class="bl-btn" href={BLOG.tg} target="_blank" rel="noopener">Обсудить в Telegram<Fragment set:html={A} /></a></div></aside>}<h2>{b.h}</h2></Fragment>
+    {post.body.map((b, i) => 'h' in b ? <Fragment>{svc && i === mid && <aside class="bp-cta"><p>{svc.q}</p><div class="bp-cta__b"><a class="bl-btn" href={SITE.telegram} target="_blank" rel="noopener">Обсудить в Telegram<Fragment set:html={A} /></a></div></aside>}<h2>{b.h}</h2></Fragment>
       : 'lead' in b ? <p class="bp__lead" set:html={b.lead} />
       : 'ul' in b ? <ul>{b.ul.map((t) => <li set:html={t} />)}</ul>
       : 'ol' in b ? <ol>{b.ol.map((t) => <li set:html={t} />)}</ol>
