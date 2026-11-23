@@ -104,7 +104,7 @@ const blocks = (v: any) => {
   return [Object.keys(BL).filter((k) => b[k]).map((k) => `${BL[k]} ${b[k]} с`).join(', '), v.lb && `вышел: ${BL[v.lb]}`, v.cp && `копировал ${v.cp}`, v.pr && `печать ${v.pr}`, v.cl && `нажал «связаться» ${v.cl}`].filter(Boolean).join(' · ');
 };
 const STEPS: [string, string][] = [['svc', 'Услуга'], ['type', 'Тип сайта'], ['reg', 'Регионы'], ['ind', 'Отрасль'], ['indText', 'Своя отрасль'], ['scale', 'Масштаб'], ['goods', 'Товары'], ['feat', 'Функции'], ['wish', 'Своя задача'], ['fill', 'Наполнение'], ['brand', 'Стиль'], ['url', 'Адрес сайта']];
-const TIPS: [string, string][] = [['kp', 'Вернулся после КП'], ['direct', 'Пришёл из Директа'], ['cases', 'Смотрит кейсы'], ['price', 'Страница услуги'], ['back', 'Повторный визит'], ['exit', 'Уходит со страницы'], ['idle', '30 секунд на странице'], ['form', 'Завис на анкете']];
+const TIPS: [string, string][] = [['kp', 'Вернулся после КП'], ['direct', 'Пришёл из Директа'], ['cases', 'Смотрит кейсы'], ['price', 'Страница услуги'], ['back', 'Повторный визит'], ['exit', 'Уходит со страницы'], ['idle', '30 секунд на странице'], ['form', 'Завис на анкете'], ['link', 'Ссылка на чат (реклама)']];
 const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)} %` : '—');
 const tbl = (h: string, head: string[], rows: unknown[][]) => `<h2 class="kp__h2">${h}</h2><table class="kp__tbl kpa__tbl"><thead><tr>${head.map((x) => `<td>${x}</td>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((x) => `<td>${esc(x)}</td>`).join('')}</tr>`).join('') || '<tr><td>нет данных</td></tr>'}</tbody></table>`;
 async function stats(days: number) {

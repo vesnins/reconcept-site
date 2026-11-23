@@ -242,6 +242,16 @@ function invite() {
   ss('chat-tips', [...done, r[0]].join(',')); ev(`tip:${r[0]}`); window.goal?.('chat_tip');
 }
 let last2 = -60;
+// Ссылка для рекламы и рассылок: любая страница с ?chat=kp (короткая — reconcept.ru/kp/chat) — чат открыт, робот считает КП
+const u0 = new URL(location.href), q0 = u0.searchParams.get('chat');
+if (q0 === 'kp' && !KP) {
+  u0.searchParams.delete('chat'); history.replaceState(history.state, '', u0.pathname + u0.search + u0.hash); // utm и yclid остаются
+  ss('chat-tip', '1'); ready = shown = true; root.classList.add('cw--in');
+  if (!s.sid) { via = 'link'; if (!soft) greet(HI_CALC, CALC); }
+  if (ck && !ck.hidden) box.style.zIndex = '101'; // поверх cookie-плашки
+  ev('tip:link'); ev('tipo:link'); window.goal?.('chat_link');
+  toggle(true);
+}
 if (!KP && !s.sid && !ss('chat-tip')) {
   setInterval(() => { if (!document.hidden) { sec++; invite(); } }, 1e3);
   for (const e of ['pointerdown', 'keydown', 'input']) addEventListener(e, () => (act = Date.now()), { passive: true, capture: true });

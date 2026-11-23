@@ -112,6 +112,7 @@ http.createServer(async (req, res) => {
     if (url.pathname === '/index' || url.pathname === '/index.html') { res.writeHead(301, { Location: '/' }); return res.end(); }
     const to = redirectTo(url.pathname);
     if (to) { res.writeHead(301, { Location: to }); return res.end(); }
+    if (url.pathname === '/kp/chat') { url.searchParams.set('chat', 'kp'); res.writeHead(302, { Location: '/' + url.search }); return res.end(); } // короткая ссылка на чат с КП (реклама)
     if (await serveStatic(req, res, url)) return;
     return notFound(res);
   } catch (e) {
