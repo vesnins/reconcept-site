@@ -8,13 +8,16 @@ import { sevengoals } from './posts/sevengoals';
 import { esdnevnik } from './posts/esdnevnik';
 import { haloOglasi } from './posts/halo-oglasi';
 import { aiNewsRewriter } from './posts/ai-news-rewriter';
+import { aiConsultant } from './posts/ai-consultant';
 export type Block = { p: string } | { lead: string } | { h: string } | { ul: string[] } | { ol: string[] } | { tbl: string[][] } | { fig: string; cap?: string };
 export interface Post { slug: string; title: string; card?: string; date: string; ill: string; cover?: string; rel: string[]; body: Block[]; seo?: { t: string; d: string }; author?: string; upd?: string; svc?: string[]; pin?: boolean }
 
 export const BLOG = { title: 'Блог ReConcept — разработка и веб-продвижение', description: 'Блог Reconcept: как мы разрабатываем Telegram-ботов, мобильные приложения и автоматизацию — реальные проекты, решения и ошибки.', category: 'Кодинг', tg: 'https://t.me/reconcept', tgHandle: '@reconcept' };
 
 export const POSTS: Post[] = [
-  { slug: 'menteora', svc: ['development'], pin: true, title: 'Разработка бота Menteora — учёт стресса в тренировках спортсменов', card: 'Телеграм-бот Menteora', date: '2026-10-08', ill: 'menteora', cover: 'menteora-cam', rel: ['sevengoals', 'esdnevnik'], body: menteora, author: 'Сергей Веснин',
+  { slug: 'ai-consultant', svc: ['development'], pin: true, title: 'ИИ-консультант для сайта, который сам считает цену и выставляет КП', card: 'ИИ-консультант, который выставляет КП', date: '2026-11-23', ill: 'ai-consultant', rel: ['ai-news-rewriter', 'menteora'], body: aiConsultant, author: 'Сергей Веснин',
+    seo: { t: 'ИИ-консультант для сайта: считает цену и выставляет КП', d: 'Чат-бот на ИИ отвечает клиентам, когда менеджер занят, считает стоимость по вашей формуле и присылает готовое КП. Разработка ИИ-консультантов на заказ.' } },
+  { slug: 'menteora', svc: ['development'], pin: true, title: 'Разработка бота Menteora — учёт стресса в тренировках спортсменов', card: 'Телеграм-бот Menteora', date: '2026-10-08', ill: 'menteora', cover: 'menteora-cam', rel: ['ai-consultant', 'sevengoals'], body: menteora, author: 'Сергей Веснин',
     seo: { t: 'Telegram-бот для спортсменов: кейс Menteora — Reconcept', d: 'Как мы сделали Telegram-бота для спортсменов: интеграция с Garmin, оплата картой и СБП, ML-модели и отказ от них. Разработка ботов на заказ — Reconcept.' } },
   { slug: 'sevengoals', svc: ['development'], pin: true, title: 'Я разработал приложение, которое помогает найти главную цель в жизни, и оно лежит в App Store. Вот где я ошибся', card: 'Приложение SevenGoals', date: '2026-06-17', ill: 'sevengoals', cover: 'sevengoals-in', rel: ['menteora', 'ai-news-rewriter'], body: sevengoals, author: 'Сергей Веснин',
     seo: { t: 'Приложение SevenGoals на React Native: кейс — Reconcept', d: 'Как мы сделали iOS и Android-приложение на React Native и Firebase: отказ Apple, тесты в Google Play, ошибки полуночи и летнего времени.' } },
@@ -22,7 +25,7 @@ export const POSTS: Post[] = [
     seo: { t: 'Telegram-бот для электронного дневника esDnevnik — Reconcept', d: 'Как мы сделали Telegram-бота для электронного дневника: обход блокировки через WireGuard, оплата в Telegram Stars, 3 языка. Разработка ботов на заказ.' } },
   { slug: 'halo-oglasi-bot', svc: ['development'], pin: true, title: 'Поднял сервер на старом телефоне Samsung и сделал там бота для сообщений о новых квартирах в Белграде', card: 'Телеграм-бот для Halo Oglasi', date: '2025-12-11', ill: 'halo-oglasi', cover: 'halo-oglasi-in', rel: ['esdnevnik', 'menteora'], body: haloOglasi, author: 'Сергей Веснин',
     seo: { t: 'Бот-парсер квартир в Белграде: кейс Halo Oglasi — Reconcept', d: 'Бот парсит сайт недвижимости и за 3–5 минут шлёт новые квартиры в Telegram: Cloudflare, сервер на Android-телефоне. Разработка ботов на заказ.' } },
-  { slug: 'ai-news-rewriter', svc: ['development'], title: 'Я написал ИИ-парсер, который рерайтит новости и публикует их в моём блоге', card: 'ИИ-парсер новостей для vesnins.ru', date: '2025-10-21', ill: 'ai-news-rewriter', cover: 'ai-news-rewriter-in', rel: ['halo-oglasi-bot', 'esdnevnik'], body: aiNewsRewriter, author: 'Сергей Веснин',
+  { slug: 'ai-news-rewriter', svc: ['development'], title: 'Я написал ИИ-парсер, который рерайтит новости и публикует их в моём блоге', card: 'ИИ-парсер новостей для vesnins.ru', date: '2025-10-21', ill: 'ai-news-rewriter', cover: 'ai-news-rewriter-in', rel: ['ai-consultant', 'halo-oglasi-bot'], body: aiNewsRewriter, author: 'Сергей Веснин',
     seo: { t: 'ИИ-парсер и рерайтер новостей для WordPress — Reconcept', d: 'ИИ-робот находит новости в RSS, пишет заметки в стиле автора и кладёт черновики в WordPress. Gemini из России, cron, Telegram. Разработка на заказ.' } },
 ];
 
